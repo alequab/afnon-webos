@@ -1,0 +1,28 @@
+# Built package
+out/
+
+# Sounds: the adhan recordings have no licence (tools/fetch-adhans.ps1 downloads them) and the spoken lines are
+# made on your PC with Windows' voice (tools/make-voice.ps1). Neither is published.
+app/sounds/
+service/announce/
+
+# Copies made by tools/sync.ps1 from shared/ and adhan-js
+app/js/adhan.js
+app/js/prayer.js
+app/js/text.js
+service/adhan.js
+service/prayer.js
+service/text.js
+
+# Settings the service keeps on the TV
+service/state.json
+
+# Tools' own downloads and output
+tools/npm/node_modules/
+tools/compare/build/
+
+# This PC's setup (paths to the portable Node, ares-* and JDK)
+tools/env.local.ps1
+
+# The first capability probe, kept locally only
+probe/
