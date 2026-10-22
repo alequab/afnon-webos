@@ -72,7 +72,7 @@
     locale: 'system', digits: '', clock: 'system', city: 'cairo', method: null, madhab: 'shafi', hijri: 0,
     facing: -1, remind: 15, remindVoice: true, announce: true, adhan: true, callClose: 10,
     bells: [1, 0, 1, 1, 1, 1], voice: 'alafasy', voiceFajr: 'chebae_fajr', station: 'nablus', radioResume: true,
-    radioDark: 0, night: false
+    radioDark: 0, night: false, liveQuality: 480
   };
   var S = loadSettings();
 
@@ -424,6 +424,7 @@
   }
   function radioStart() {
     if (Radio.wanted) return;
+    liveStop();
     Radio.wanted = true;
     Radio.failures = 0;
     radioConnect();
@@ -505,12 +506,170 @@
     playSound('sounds/announce/' + kind + name + '.wav', 'clip');
   }
 
+  // ---------------------------------------------------------------- live from Makkah and Madinah (Live.java)
+
+  /**
+   * The live video from Makkah and Madinah for Home's panel: Aloula's (aloula.sba.sa, the Saudi Broadcasting
+   * Authority) Quran channel (7) and Sunnah channel (6), H.264 and AAC over HLS, which webOS plays in a <video>.
+   * Each start asks Aloula's player API for a fresh master playlist (its token lasts minutes, so it is never kept),
+   * takes the rendition for the saved quality (S.liveQuality, else the nearest below) and, when it answers, that
+   * rendition's live list (three segments) in place of its six-hour DVR list (~3600, 300 KB, read every few
+   * seconds). The CDN ties each rendition to the User-Agent that read the master; here both are the page's own.
+   * One try: a failure says so. The <video> exists only while one plays, so a stopped one holds no decoder.
+   */
+  var Live = {
+    OFF: 0, CONNECTING: 1, PLAYING: 2, FAILED: 3, CHANNELS: [7, 6],
+    API: 'https://aloula.faulio.com/api/v1.1/channels/',
+    state: 0, place: -1, gen: 0, renditions: [], height: 0, v: null, timer: 0, since: 0, full: false,
+    switching: false, refetched: false, listeners: []
+  };
+
+  function liveGet(url, cb) {
+    var x = new XMLHttpRequest();
+    x.open('GET', url);
+    x.timeout = 8000;
+    x.onload = function () { cb(x.status === 200 ? x.responseText : null); };
+    x.onerror = x.ontimeout = function () { cb(null); };
+    x.send();
+  }
+  function liveSet(s) {
+    Live.state = s;
+    for (var i = 0; i < Live.listeners.length; i++) Live.listeners[i](s);
+  }
+  /** The rendition of that height, or the nearest below it, or the lowest there is (renditions lowest first). */
+  function liveChoose(h) {
+    var pick = Live.renditions[0];
+    Live.renditions.forEach(function (r) { if (r.height <= h && r.height > pick.height) pick = r; });
+    return pick;
+  }
+
+  /** Stops whatever plays (the radio too) and starts Makkah (0) or Madinah (1). */
+  function liveStart(which) {
+    liveRelease();
+    if (Radio.wanted) radioStop();
+    Live.place = which;
+    Live.renditions = [];
+    Live.height = 0;
+    Live.switching = Live.refetched = false;
+    Live.since = Date.now();
+    liveSet(Live.CONNECTING);
+    liveFetch(S.liveQuality);
+  }
+
+  /** Reads a fresh master playlist and its renditions, then plays the one for quality. */
+  function liveFetch(quality) {
+    var gen = ++Live.gen, ch = Live.CHANNELS[Live.place];
+    liveGet(Live.API + ch + '/player', function (body) {
+      if (gen !== Live.gen) return;
+      var master = null;
+      try { master = JSON.parse(body).streams.hls; } catch (e) { /* below */ }
+      if (!master) return liveFail('no address from Aloula');
+      liveGet(master, function (m) {
+        if (gen !== Live.gen) return;
+        var list = [], lines = String(m || '').split('\n');
+        for (var i = 0; i + 1 < lines.length; i++) {
+          var info = lines[i], uri = lines[i + 1].trim();
+          if (info.indexOf('#EXT-X-STREAM-INF:') !== 0 || !uri || uri.charAt(0) === '#') continue;
+          var h = /RESOLUTION=\d+x(\d+)/.exec(info), b = /(?:^|[:,])BANDWIDTH=(\d+)/.exec(info);
+          list.push({ height: h ? +h[1] : 0, bandwidth: b ? +b[1] : 0, url: new URL(uri, master).toString() });
+        }
+        if (!m) return liveFail('no master playlist');
+        if (!list.length) list.push({ height: 0, bandwidth: 0, url: master });
+        list.sort(function (x, y) { return x.height - y.height; });
+        var dvr = '/chunks_dvr.m3u8', liveList = '/chunks.m3u8';
+        function play() {
+          Live.renditions = list;
+          var r = liveChoose(quality);
+          Live.height = r.height;
+          liveLoad(r.url);
+        }
+        if (list[0].url.indexOf(dvr) < 0) return play();
+        liveGet(list[0].url.replace(dvr, liveList), function (l) {
+          if (gen !== Live.gen) return;
+          if (l && l.indexOf('#EXTM3U') === 0) list.forEach(function (x) { x.url = x.url.replace(dvr, liveList); });
+          play();
+        });
+      });
+    });
+  }
+
+  /** Plays url on the panel's <video>, made now if there is none. */
+  function liveLoad(url) {
+    var gen = ++Live.gen, v = Live.v;
+    if (!v) {
+      // Under the panel's message and full-screen hint.
+      v = Live.v = document.createElement('video');
+      home.panel.insertBefore(v, home.panel.firstChild);
+      v.addEventListener('playing', function () {
+        if (Live.v !== v || Live.state === Live.PLAYING) return;
+        clearTimeout(Live.timer);
+        note('live ' + Live.CHANNELS[Live.place] + ' ' + Live.height + 'p playing after ' + ((Date.now() - Live.since) / 1000).toFixed(1) + ' s');
+        Live.switching = false;
+        liveSet(Live.PLAYING);
+      });
+      v.addEventListener('error', function () {
+        if (Live.v !== v || !v.getAttribute('src')) return;
+        // A rendition's token may have run out: a fresh master, once, for the quality just picked.
+        if (Live.switching && !Live.refetched) { Live.refetched = true; liveFetch(Live.height); }
+        else liveFail('error ' + (v.error ? v.error.code : '?'));
+      });
+      // A live stream never ends; if it does, the connection dropped. One try: it stops.
+      v.addEventListener('ended', function () { if (Live.v === v) liveFail('ended'); });
+    }
+    clearTimeout(Live.timer);
+    Live.timer = setTimeout(function () { if (gen === Live.gen && Live.state !== Live.PLAYING) liveFail('no picture after 25 s'); }, 25000);
+    v.src = url;
+    var p = v.play();
+    if (p && p.catch) p.catch(function (e) { if (gen === Live.gen && e.name !== 'AbortError') liveFail('play: ' + e.name); });
+  }
+
+  /** Another quality (a picture height), saved for next time; a playing stream moves to it at once. */
+  function liveQuality(h) {
+    S.liveQuality = h;
+    saveSettings();
+    if (!Live.v || !Live.renditions.length) return;
+    var r = liveChoose(h);
+    if (r.height === Live.height) return;
+    Live.height = r.height;
+    Live.switching = true;
+    Live.since = Date.now();
+    liveSet(Live.CONNECTING);
+    liveLoad(r.url);
+  }
+
+  function liveRelease() {
+    Live.gen++;
+    clearTimeout(Live.timer);
+    var v = Live.v;
+    if (!v) return;
+    Live.v = null;
+    v.pause();
+    v.removeAttribute('src');
+    v.load();
+    if (v.parentNode) v.parentNode.removeChild(v);
+  }
+  /** Couldn't play: everything is released, and the panel says so until it is stopped. */
+  function liveFail(why) {
+    note('live ' + Live.CHANNELS[Live.place] + ' failed: ' + why);
+    liveRelease();
+    liveSet(Live.FAILED);
+  }
+  /** Stops and releases everything; Home's strip and radio card come back. */
+  function liveStop() {
+    if (Live.place < 0) return;
+    liveRelease();
+    Live.place = -1;
+    liveSet(Live.OFF);
+  }
+
   // ---------------------------------------------------------------- Home (MainActivity)
 
   var home = screens.home = {
     lastMinute: -1, day: null, shift: 0, archFocused: false, lastRadio: null, card: null,
     build: buildHome,
-    show: function () { if (!home.card) focus(home.foot); }
+    show: function () { if (!home.card) focus(home.foot); },
+    // The live video plays only on Home: Today's prayers, Settings, the call or the black screen stop it.
+    hide: function () { liveStop(); }
   };
 
   function buildHome() {
@@ -540,6 +699,13 @@
     night.appendChild(home.nightIcon);
     night._ok = function () { setNight(!S.night); };
     night._focus = function () { setArchFocused(false); setHints(home.hints, [t.hintOk(S.night ? t.nightOff() : t.nightOn())]); };
+    // Live from Makkah and Madinah, beside night mode: its list picks one (or Stop while one is on).
+    var livePill = home.livePill = placeEnd(el('div', 't pill livepill', e), 96 + 2 * (72 + 20), 56, null, 72);
+    livePill.appendChild(icon('live', 30, 1.8));
+    el('span', 'gap', livePill);
+    el('span', null, livePill, t.live());
+    livePill._ok = chooseLive;
+    livePill._focus = function () { setArchFocused(false); setHints(home.hints, [t.hintOk(t.liveTitle())]); };
 
     // The prayer strip: information only, never focusable.
     var cw = (1064 - 5 * 12) / 6;
@@ -550,11 +716,12 @@
     }
 
     buildRadioCard(e);
+    buildLivePanel(e);
     home.hints = hintsEl(e, 760, 962);
 
     foot._focus = function () { setArchFocused(true); setHints(home.hints, [t.hintOk(t.today()), t.hintRadio()]); };
     gear._focus = function () { setArchFocused(false); setHints(home.hints, [t.hintOk(t.settings())]); };
-    home.nodes = [foot, gear, night, home.play, home.pick, home.dark];
+    home.nodes = [foot, gear, night, livePill, home.play, home.pick, home.dark, home.lFull, home.lOther, home.lStop];
     home.ready = true;
   }
 
@@ -624,6 +791,82 @@
     dark._focus = function () { home.lastRadio = dark; setArchFocused(false); radioHints(); };
     Radio.listeners.push(styleRadio);
     styleRadio();
+  }
+
+  /**
+   * The live panel: 16:9 across the courtyard where the prayer strip and the radio card were (they come back when
+   * it stops); the clock, dates and arch stay. Under it the place and state, Full screen, the other mosque and
+   * Stop. Full screen lays the same <video> over the whole screen.
+   */
+  function buildLivePanel(parent) {
+    home.panel = place(el('div', 'livepanel', parent), 760, 280, 1064, 598);
+    home.panelMsg = el('div', 'msg', home.panel);
+    home.fullHint = el('div', 'fullhint', home.panel, t.fullScreenHint());
+    var bar = home.liveBar = place(el('div', 'livebar', parent), 760, 892, 1064, 60);
+    home.liveWords = el('div', 'words nowrap', bar);
+    function btn(iconName, label, ok) {
+      var b = el('div', 't rbtn', bar);
+      b.appendChild(icon(iconName, 24, 2));
+      el('span', 'gap', b);
+      b._label = el('span', null, b, label);
+      b._ok = ok;
+      b._focus = function () { setArchFocused(false); setHints(home.hints, [t.hintOk(b._label.textContent)]); };
+      return b;
+    }
+    home.lFull = btn('expand', t.fullScreen(), function () { liveFull(true); });
+    home.lOther = btn('live', '', function () { liveStart(1 - Live.place); });
+    home.lStop = btn('stop', t.radioStop(), function () { liveStop(); focus(home.livePill); });
+    Live.listeners.push(styleLive);
+  }
+
+  /** Puts Home in step with the live video: the panel or the strip and radio card, and its words. */
+  function styleLive() {
+    var on = Live.place >= 0;
+    home.el.classList.toggle('living', on);
+    if (!on) {
+      liveFull(false);
+      if (cur === home.lFull || cur === home.lOther || cur === home.lStop) focus(home.livePill);
+      return;
+    }
+    var places = t.livePlaces();
+    setText(home.liveWords, places[Live.place] + t.sep() + t.liveStatus(Live.state) +
+      (Live.state === Live.PLAYING && Live.height ? t.sep() + t.d(Live.height + 'p') : ''));
+    setText(home.lOther._label, places[1 - Live.place]);
+    setText(home.panelMsg, Live.state === Live.PLAYING ? '' : t.liveStatus(Live.state));
+    home.panelMsg.style.display = Live.state === Live.PLAYING ? 'none' : '';
+  }
+
+  /** Full screen on or off; its hint shows for 4 s. ▲▼ there open the quality list, Back comes out. */
+  function liveFull(on) {
+    if (on && Live.place < 0) return;
+    if (Live.full === on) return;
+    Live.full = on;
+    home.panel.classList.toggle('full', on);
+    clearTimeout(home.fullHintTimer);
+    home.fullHint.classList.toggle('on', on);
+    if (on) home.fullHintTimer = setTimeout(function () { home.fullHint.classList.remove('on'); }, 4000);
+    else if (Live.place >= 0) focus(home.lFull);
+  }
+
+  /** The Live pill's list: Makkah, Madinah, and Stop while one is on. */
+  function chooseLive() {
+    var items = t.livePlaces().slice();
+    if (Live.place >= 0) items.push(t.radioStop());
+    openChooser(t.liveTitle(), items, Live.place, function (i) {
+      if (i === 2) return liveStop();
+      if (i !== Live.place || Live.state === Live.FAILED) liveStart(i);
+      focus(home.lFull);
+    });
+  }
+
+  /** Full screen's quality list: each rendition with what an hour costs, the one playing chosen. */
+  function chooseQuality() {
+    var list = Live.renditions.slice().reverse();
+    if (!list.length) return;
+    var sel = 0;
+    list.forEach(function (r, i) { if (r.height === Live.height) sel = i; });
+    openChooser(t.quality(), list.map(function (r) { return t.qualityItem(r.height, r.bandwidth); }), sel,
+      function (i) { liveQuality(list[i].height); });
   }
 
   function radioHints() {
@@ -703,9 +946,16 @@
   /** design/FocusMap.dc.html for the LG Home, written for LTR; in Arabic Left/Right swap. */
   function homeKey(k) {
     if (home.card) return cardKey(k);
+    // Full screen: ▲▼ or OK open the quality list, Back comes out.
+    if (Live.full) {
+      if (k === KEY.BACK) liveFull(false);
+      else if (k === KEY.UP || k === KEY.DOWN || k === KEY.OK) chooseQuality();
+      return;
+    }
     if (k === KEY.BACK) {
-      // Back returns focus to the arch; from the arch it leaves Afnon.
-      if (cur !== home.foot) focus(home.foot);
+      // Back stops the live video; then it returns focus to the arch; from the arch it leaves Afnon.
+      if (Live.place >= 0) { liveStop(); focus(home.foot); }
+      else if (cur !== home.foot) focus(home.foot);
       else exitApp();
       return;
     }
@@ -713,10 +963,16 @@
     var toEnd = (k === KEY.RIGHT) !== rtl, toStart = (k === KEY.LEFT) !== rtl;
     if (k !== KEY.LEFT && k !== KEY.RIGHT) toEnd = toStart = false;
     var up = k === KEY.UP, down = k === KEY.DOWN, to = null;
-    var radio = home.lastRadio || home.play;
-    if (cur === home.foot) to = toEnd ? home.play : up ? home.gear : null;
+    // While the live panel is on, its buttons stand where the radio card's were.
+    var living = Live.place >= 0;
+    var radio = living ? home.lFull : home.lastRadio || home.play;
+    if (cur === home.foot) to = toEnd ? (living ? home.lFull : home.play) : up ? home.gear : null;
     else if (cur === home.gear) to = down ? radio : toStart ? home.night : null;
-    else if (cur === home.night) to = down ? radio : toEnd ? home.gear : toStart ? home.foot : null;
+    else if (cur === home.night) to = down ? radio : toEnd ? home.gear : toStart ? home.livePill : null;
+    else if (cur === home.livePill) to = down ? radio : toEnd ? home.night : toStart ? home.foot : null;
+    else if (cur === home.lFull) to = toStart ? home.foot : toEnd ? home.lOther : up ? home.livePill : null;
+    else if (cur === home.lOther) to = toStart ? home.lFull : toEnd ? home.lStop : up ? home.livePill : null;
+    else if (cur === home.lStop) to = toStart ? home.lOther : up ? home.livePill : null;
     else if (cur === home.play) to = toStart ? home.foot : toEnd ? home.pick : up ? home.gear : null;
     else if (cur === home.pick) to = toStart ? home.play : toEnd ? home.dark : up ? home.gear : null;
     else if (cur === home.dark) to = toStart ? home.pick : up ? home.gear : null;
@@ -1970,6 +2226,7 @@
     if (PS.platformBack) PS.platformBack();
   }
   function exitApp() {
+    liveStop();
     radioStop();
     stopSound();
     var done = false;
@@ -1986,6 +2243,7 @@
       if (ch.on && ch.onFocus) closeChooser(null);
       stopPreview();
       radioStop();
+      liveStop();
     }
     tellService();
     if (!document.hidden) {
@@ -2045,6 +2303,7 @@
    *   test=dream                      the dim screen now (radio on);  idle=<seconds> its idle time, this session
    *   test=lunaoff                    the service's luna turnOffScreen for 4 s (denied on this firmware)
    *   test=mem                        logs the page's memory
+   *   live=makkah|madinah|off         the live video on Home;  quality=<height> first;  full=1 full screen
    *   set=key:value,…                 changes saved settings (callClose:10, night:1, radioDark:15 …)
    *   locale=ar|en|system digits=eastern|western clock=12|24|system
    *   open=day|settings               opens a screen;  keys=down,ok,back,…  presses keys 450 ms apart
@@ -2092,6 +2351,13 @@
         setTimeout(function () { luna(SVC + 'screenOn', {}, function (q) { note('service screenOn ' + JSON.stringify(q)); }); }, 4000);
       });
     } else if (kind === 'mem') memNote('mem');
+    if (p.live) {
+      if (screen !== home) show('home');
+      if (+p.quality > 0) { S.liveQuality = +p.quality; saveSettings(); }
+      var which = ['makkah', 'madinah'].indexOf(String(p.live));
+      if (which < 0) liveStop();
+      else { liveStart(which); focus(home.lFull); if (+p.full) liveFull(true); }
+    }
     if (p.keys) pressKeys(String(p.keys).split(','));
   }
 

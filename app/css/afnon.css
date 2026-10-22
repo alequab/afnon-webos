@@ -166,6 +166,25 @@ svg { display: block; overflow: visible; }
 [dir=rtl] .rbtn + .rbtn { margin-right: 16px; }
 [dir=ltr] .rbtn + .rbtn { margin-left: 16px; }
 
+/* Live from Makkah and Madinah: the header pill, and the panel and its bar in the strip's and radio card's place. */
+.livepill { height: 72px; padding: 0 28px 0 24px; font-size: 24px; white-space: nowrap; }
+.livepill::after { border-radius: 46px; }
+.livepill svg { width: 30px; height: 30px; }
+.livepill .gap { width: 12px; }
+.livepanel, .livebar { display: none; }
+#home.living .livepanel { display: block; }
+#home.living .livebar { display: flex; align-items: center; }
+#home.living .cell, #home.living .radio { display: none; }
+.livepanel { border-radius: 24px; overflow: hidden; background: #000; border: 2px solid var(--gold60); box-sizing: border-box; }
+.livepanel video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; }
+.livepanel .msg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--mist); }
+.livepanel.full { z-index: 1; top: 0 !important; left: 0 !important; right: 0 !important; width: 1920px !important; height: 1080px !important; border: 0; border-radius: 0; }
+.fullhint { position: absolute; left: 0; right: 0; bottom: 48px; text-align: center; font-size: 26px; color: #fff; text-shadow: 0 2px 8px #000; opacity: 0; transition: opacity 400ms; pointer-events: none; }
+.fullhint.on { opacity: 1; }
+.livebar .words { flex: 1; min-width: 0; font-size: 24px; color: var(--gold); }
+.livebar .rbtn { height: 60px; font-size: 22px; flex: none; }
+.livebar .rbtn svg { width: 24px; height: 24px; }
+
 /* Radio bars: rest as steps; playing, they breathe (scaleY only). */
 .bars { display: flex; align-items: flex-end; direction: ltr; }
 .bars i { display: block; height: 100%; border-radius: 6px; background: currentColor; transform-origin: 50% 100%; }
@@ -230,7 +249,7 @@ svg { display: block; overflow: visible; }
 .dial .hub { fill: var(--ink); }
 
 /* Overlays: the room picker and the list chooser, over a dimmed screen. */
-.scrim { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; background: var(--scrim); display: none; }
+.scrim { z-index: 2; position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; background: var(--scrim); display: none; }
 .scrim.on { display: block; }
 .box { position: absolute; box-sizing: border-box; background: var(--lapis8); border-radius: 24px; border: 2px solid var(--gold60); }
 

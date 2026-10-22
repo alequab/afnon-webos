@@ -30,6 +30,10 @@ Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of 
 - **Quran radio.** Broadcast Quran radio from Nablus, Qatar (two) and Jordan, Shabab FM Quran, the Saudi
   Broadcasting Authority's Holy Quran Radio and Nida Al-Islam Radio, and ten reciters' 24/7 channels from
   mp3quran.net. Each plays the station's own public stream.
+- **Live from Makkah and Madinah.** The «مباشر» pill on Home plays the live video from the Saudi Broadcasting
+  Authority's Quran and Sunnah channels (on Aloula) in a panel where the prayer strip was; the arch, clock and
+  countdown stay. Full screen, and a quality list (360p, 480p, 1080p) with the data each uses per hour; 480p
+  at first. It plays only while you're on Home.
 - **Screen off while listening.** The panel goes dark while the radio keeps playing; any button brings it
   back. After a while without a key press, a dim screen with the clock and next prayer comes first, moving now
   and then so nothing burns in.
@@ -41,7 +45,7 @@ Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of 
   keeps its own time-zone rules, summer time included. Times are calculated on the TV with
   [adhan-js](https://github.com/batoulapps/adhan-js); they match the Android app's adhan-java exactly (20,160
   times compared, none differ).
-- **No accounts, ads or tracking.** Only the radio uses the internet.
+- **No accounts, ads or tracking.** Only the radio and the live video use the internet.
 
 ### How it differs from the Android version
 
@@ -98,6 +102,8 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
   - `live.kwikmotion.com` (Qatar and the Saudi stations)
   - `jrtv-live.ercdn.net`
   - `backup.qurango.net`
+- **The live video** asks `aloula.faulio.com` (Aloula's player) for a fresh stream address each time you start
+  it, then plays from `live.kwikmotion.com`. Nothing is stored.
 - **Screen off** asks the TV's own remote-control service, on the TV itself (`127.0.0.1`), to turn the panel
   off. Apps in Developer Mode aren't allowed to do it directly. The key the TV gives for that stays in Afnon's
   storage on the TV.
@@ -133,6 +139,7 @@ on the TV's Node 8. Everything aims to stay fast on a weak TV:
 - Kinds: `call`, `reminder`, `announce`, `voice`, `friday`, `ramadan`, `radio`, `screenoff`, `dream`, `mem`
 - `-p seconds=<n>` delays it.
 - `-p station=<id>` picks a radio station.
+- `-p live=makkah|madinah|off` plays the live video (`-p quality=<height>`, `-p full=1`).
 
 The service logs to `/tmp/afnon-lg.log` on the TV (`ares-novacom --device lg --run "tail /tmp/afnon-lg.log"`).
 

@@ -104,6 +104,37 @@
   T.radioPlay = function () { return this.ar ? 'تشغيل' : 'Play'; };
   T.radioStop = function () { return this.ar ? 'إيقاف' : 'Stop'; };
   T.screenOff = function () { return this.ar ? 'إطفاء الشاشة' : 'Screen off'; };
+  // Live from Makkah and Madinah: Home's Live pill, its list and the video panel.
+  T.live = function () { return this.ar ? 'مباشر' : 'Live'; };
+  T.liveTitle = function () { return this.ar ? 'الحرمان الشريفان' : 'Makkah & Madinah'; };
+  /** In the order of Live.CHANNELS: Makkah, Madinah. */
+  T.livePlaces = function () { return this.ar ? ['مكة المكرمة', 'المدينة المنورة'] : ['Makkah', 'Madinah']; };
+  /** Live.CONNECTING, PLAYING, FAILED. */
+  T.liveStatus = function (s) {
+    if (s === 2) return this.ar ? 'على الهواء' : 'On air';
+    if (s === 3) return this.ar ? 'تعذّر تشغيل البث' : "Couldn't play the live stream";
+    return this.ar ? 'جارٍ الاتصال…' : 'Connecting…';
+  };
+  T.liveNote = function () {
+    return this.ar ? 'بث مباشر من قناتي القرآن الكريم والسنة النبوية على منصة الأولى · يتوقف عند مغادرة الرئيسية'
+      : 'Live from the Quran and Sunnah channels on Aloula · stops when you leave Home';
+  };
+  T.fullScreen = function () { return this.ar ? 'ملء الشاشة' : 'Full screen'; };
+  T.fullScreenHint = function () {
+    return this.ar ? 'رجوع للخروج من ملء الشاشة     ▲▼  الجودة' : 'Back to exit full screen     ▲▼  Quality';
+  };
+  T.quality = function () { return this.ar ? 'الجودة' : 'Quality'; };
+  /** A rendition in the quality list: "480p · ~750 MB/h", its data per hour from its bits per second. */
+  T.qualityItem = function (height, bitsPerSecond) {
+    var mb = bitsPerSecond * 3600 / 8 / 1e6, gb = mb >= 1000;
+    var n = gb ? (mb / 1000).toFixed(1) : String(Math.round(mb / 10) * 10);
+    if (this.eastern) n = n.replace('.', '٫');
+    // In Arabic «نحو», not "~": an Arabic word between the Latin runs keeps "1080p · نحو 4.8 جيجا/ساعة" in order
+    // from the right (Chromium 68 ignores the isolate marks).
+    var size = height ? height + 'p' : '—';
+    if (this.ar) return this.d(size + ' · نحو ' + n + (gb ? ' جيجا/ساعة' : ' ميجا/ساعة'));
+    return this.d(size + ' · ~' + n + (gb ? ' GB/h' : ' MB/h'));
+  };
   T.screenOffNote = function () {
     return this.d(this.ar ? 'الشاشة مطفأة والإذاعة تعمل · اضغط أي زر للعودة' : 'Screen off, radio playing · press any key to come back');
   };
@@ -208,6 +239,7 @@
         '136 مدينة في 43 دولة، تُختار بالمنطقة ثم الدولة ثم المدينة',
         'لكل مدينة مذهب العصر المعتاد فيها، ويبقى تغييره ممكنًا',
         'مع الأرقام اللاتينية، الأرقام الكبيرة بخط الإنجليزية (Marcellus)، والعدّ التنازلي ثابت في مكانه',
+        'بث مباشر من مكة المكرمة والمدينة المنورة: زر «مباشر» في الرئيسية، مع ملء الشاشة واختيار الجودة',
         'من السعودية: إذاعة القرآن الكريم وإذاعة نداء الإسلام',
         'لم تعد إذاعة القرآن الكريم من القاهرة ضمن المحطات',
         'هذه الصفحة: ما الجديد في كل إصدار'],
@@ -223,6 +255,7 @@
         '136 cities in 43 countries, picked by region, then country, then city',
         'Each city starts on its usual Asr school, which you can still change',
         'With Latin digits in Arabic, the big numbers in the English font (Marcellus), and the countdown holds still',
+        'Live from Makkah and Madinah: the Live button on Home, with full screen and a choice of quality',
         'From Saudi Arabia: Holy Quran Radio and Nida Al-Islam Radio',
         "Cairo's Holy Quran Radio is no longer in the list",
         "This page: what's new in each release"],

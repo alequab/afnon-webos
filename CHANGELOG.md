@@ -16,6 +16,18 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
 - **Two Saudi Quran stations,** from the Saudi Broadcasting Authority's own streams (as Saudi Radio+ plays
   them): Holy Quran Radio and Nida Al-Islam Radio.
 - **Settings → What's new,** a short list per release, in the app's language.
+- **Live from Makkah and Madinah** (as on the TCL build):
+  - A «مباشر» / Live pill on Home, beside night mode, picks Makkah or Madinah: the Saudi Broadcasting
+    Authority's Quran and Sunnah channels on Aloula, H.264 over HLS in a plain `<video>`.
+  - It plays in a 16:9 panel where the prayer strip and the radio card were; the arch, clock and dates stay.
+    Under it: the place and state, Full screen, the other mosque, and Stop.
+  - Full screen: ▲▼ open the quality list (360p, 480p, 1080p, with the data per hour); 480p at first, the
+    choice remembered. Back leaves the list, then full screen, then stops the video.
+  - Each start asks Aloula for a fresh address and plays the rendition's live list (three segments) rather
+    than its six-hour DVR list. It stops on leaving Home or Afnon and with the radio, and the `<video>` is
+    removed, so nothing stays in memory.
+  - On the tested TV: playing in 2.8–3.7 s; about 57 MB more memory while it plays, all back when it stops.
+  - `ares-launch … -p live=makkah|madinah|off` (with `quality=<height>`, `full=1`) tries it.
 
 ### Changed
 - **Location is picked by region first** (Arab world, Asia, Europe, Americas, Africa, Oceania), then country (A
