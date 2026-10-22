@@ -2,6 +2,27 @@
 
 All notable changes to Afnon for LG webOS. Versions match `version` in `app/appinfo.json`.
 
+## [Unreleased]
+
+### Added
+- **62 more cities, now 136 in 43 countries,** as in Afnon 0.4:
+  - India, Pakistan, Bangladesh, Sri Lanka, the Maldives, Indonesia, Malaysia, Singapore, Brunei, Thailand,
+    Japan, South Korea and Turkey.
+  - The United Kingdom, France, Germany, the Netherlands, Belgium, Austria, Switzerland, Italy, Spain, and
+    Bosnia and Herzegovina.
+  - The United States, Canada, Kenya, Nigeria, South Africa, Australia and New Zealand.
+  - Each city has its mosques' calculation method and its own time-zone rules, including summer time in North
+    America, Europe, Australia and New Zealand.
+
+### Changed
+- **Location is picked by region first** (Arab world, Asia, Europe, Americas, Africa, Oceania), then country (A
+  to Z), then city, so no list is longer than 16. Back goes one step back.
+- **Picking a city also sets its usual Asr school:** Hanafi for Pakistan, Bangladesh and most Indian cities,
+  while Kerala and Chennai stay Shafi'i. The Asr row can still change it.
+
+### Removed
+- **The Cairo Quran radio station.** The radio now starts on Nablus.
+
 ## [0.1.0] - 2026-10-21
 
 First version, following the Android app's features and look.

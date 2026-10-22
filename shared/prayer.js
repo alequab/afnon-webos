@@ -21,12 +21,17 @@
   };
 
   /**
-   * Prefs.CITIES: id, Arabic, English, country (Arabic, English), lat, lng, method, time zone. The zone is used
-   * when the TV itself reports GMT (as this LG does): the city's own clock, from ZONES below.
+   * Prefs.CITIES: id, Arabic, English, country (Arabic, English), lat, lng, method, time zone and, where it isn't
+   * Shafi'i, the Asr school. The zone is used when the TV itself reports GMT (as this LG does): the city's own
+   * clock, from ZONES below. Picking a city also picks its method and Asr school, as Prefs.setCity does.
    */
-  var EG = 'EGYPTIAN', MWL = 'MUSLIM_WORLD_LEAGUE', UQ = 'UMM_AL_QURA', DU = 'DUBAI';
-  function c(id, ar, en, car, cen, lat, lng, method, zone) {
-    return { id: id, ar: ar, en: en, countryAr: car, countryEn: cen, lat: lat, lng: lng, method: method, zone: zone };
+  var EG = 'EGYPTIAN', MWL = 'MUSLIM_WORLD_LEAGUE', UQ = 'UMM_AL_QURA', DU = 'DUBAI', KA = 'KARACHI',
+    SGP = 'SINGAPORE', NA = 'NORTH_AMERICA', MSC = 'MOON_SIGHTING_COMMITTEE';
+  /** Hanafi Asr (about an hour later), the usual school in Pakistan, Bangladesh and most of North India. */
+  var HANAFI = 'hanafi';
+  function c(id, ar, en, car, cen, lat, lng, method, zone, madhab) {
+    return { id: id, ar: ar, en: en, countryAr: car, countryEn: cen, lat: lat, lng: lng, method: method, zone: zone,
+      madhab: madhab || 'shafi' };
   }
   var CITIES = [
     c('cairo', 'القاهرة', 'Cairo', 'مصر', 'Egypt', 30.0444, 31.2357, EG, 'EG'),
@@ -102,8 +107,105 @@
     c('aden', 'عدن', 'Aden', 'اليمن', 'Yemen', 12.8000, 45.0333, MWL, 'YE'),
     c('taiz', 'تعز', 'Taiz', 'اليمن', 'Yemen', 13.5789, 44.0219, MWL, 'YE'),
     c('hodeidah', 'الحديدة', 'Hodeidah', 'اليمن', 'Yemen', 14.8022, 42.9511, MWL, 'YE'),
-    c('mukalla', 'المكلا', 'Mukalla', 'اليمن', 'Yemen', 14.5333, 49.1333, MWL, 'YE')
+    c('mukalla', 'المكلا', 'Mukalla', 'اليمن', 'Yemen', 14.5333, 49.1333, MWL, 'YE'),
+    // United States & Canada
+    c('newyork', 'نيويورك', 'New York', 'الولايات المتحدة', 'United States', 40.7128, -74.0060, NA, 'ET'),
+    c('chicago', 'شيكاغو', 'Chicago', 'الولايات المتحدة', 'United States', 41.8781, -87.6298, NA, 'CT'),
+    c('dallas', 'دالاس', 'Dallas', 'الولايات المتحدة', 'United States', 32.7767, -96.7970, NA, 'CT'),
+    c('houston', 'هيوستن', 'Houston', 'الولايات المتحدة', 'United States', 29.7604, -95.3698, NA, 'CT'),
+    c('losangeles', 'لوس أنجلوس', 'Los Angeles', 'الولايات المتحدة', 'United States', 34.0522, -118.2437, NA, 'PT'),
+    c('toronto', 'تورونتو', 'Toronto', 'كندا', 'Canada', 43.6532, -79.3832, NA, 'ET'),
+    // India
+    c('bangalore', 'بنغالور', 'Bengaluru', 'الهند', 'India', 12.9716, 77.5946, KA, 'IN', HANAFI),
+    c('kozhikode', 'كوزيكود', 'Kozhikode', 'الهند', 'India', 11.2588, 75.7804, KA, 'IN'),
+    c('mumbai', 'مومباي', 'Mumbai', 'الهند', 'India', 19.0760, 72.8777, KA, 'IN', HANAFI),
+    c('delhi', 'دلهي', 'Delhi', 'الهند', 'India', 28.6139, 77.2090, KA, 'IN', HANAFI),
+    c('hyderabad', 'حيدر أباد', 'Hyderabad', 'الهند', 'India', 17.3850, 78.4867, KA, 'IN', HANAFI),
+    c('chennai', 'تشيناي', 'Chennai', 'الهند', 'India', 13.0827, 80.2707, KA, 'IN'),
+    c('kolkata', 'كولكاتا', 'Kolkata', 'الهند', 'India', 22.5726, 88.3639, KA, 'IN', HANAFI),
+    c('ahmedabad', 'أحمد أباد', 'Ahmedabad', 'الهند', 'India', 23.0225, 72.5714, KA, 'IN', HANAFI),
+    c('pune', 'بونه', 'Pune', 'الهند', 'India', 18.5204, 73.8567, KA, 'IN', HANAFI),
+    c('lucknow', 'لكهنؤ', 'Lucknow', 'الهند', 'India', 26.8467, 80.9462, KA, 'IN', HANAFI),
+    c('srinagar', 'سرينغار', 'Srinagar', 'الهند', 'India', 34.0837, 74.7973, KA, 'IN', HANAFI),
+    c('kochi', 'كوتشي', 'Kochi', 'الهند', 'India', 9.9312, 76.2673, KA, 'IN'),
+    c('malappuram', 'ملابورام', 'Malappuram', 'الهند', 'India', 11.0510, 76.0711, KA, 'IN'),
+    c('bhopal', 'بوبال', 'Bhopal', 'الهند', 'India', 23.2599, 77.4126, KA, 'IN', HANAFI),
+    c('patna', 'باتنا', 'Patna', 'الهند', 'India', 25.5941, 85.1376, KA, 'IN', HANAFI),
+    // Pakistan
+    c('karachi', 'كراتشي', 'Karachi', 'باكستان', 'Pakistan', 24.8607, 67.0011, KA, 'PK', HANAFI),
+    c('lahore', 'لاهور', 'Lahore', 'باكستان', 'Pakistan', 31.5204, 74.3587, KA, 'PK', HANAFI),
+    c('islamabad', 'إسلام أباد', 'Islamabad', 'باكستان', 'Pakistan', 33.6844, 73.0479, KA, 'PK', HANAFI),
+    c('rawalpindi', 'راولبندي', 'Rawalpindi', 'باكستان', 'Pakistan', 33.5651, 73.0169, KA, 'PK', HANAFI),
+    c('peshawar', 'بيشاور', 'Peshawar', 'باكستان', 'Pakistan', 34.0151, 71.5249, KA, 'PK', HANAFI),
+    // Bangladesh
+    c('dhaka', 'دكا', 'Dhaka', 'بنغلاديش', 'Bangladesh', 23.8103, 90.4125, KA, 'BD', HANAFI),
+    c('chittagong', 'شيتاغونغ', 'Chittagong', 'بنغلاديش', 'Bangladesh', 22.3569, 91.7832, KA, 'BD', HANAFI),
+    // Sri Lanka & Maldives (Shafi'i, as are Kerala and Tamil Nadu above)
+    c('colombo', 'كولمبو', 'Colombo', 'سريلانكا', 'Sri Lanka', 6.9271, 79.8612, KA, 'LK'),
+    c('male', 'ماليه', 'Malé', 'المالديف', 'Maldives', 4.1755, 73.5093, MWL, 'MV'),
+    // Southeast Asia. Indonesia, Singapore and Brunei use 20°/18°. Malaysia (JAKIM) moved Subuh to 18° in 2020;
+    // Moon Sighting Committee comes within 2 minutes of e-solat for Kuala Lumpur (upstream's note, 2026-10-22).
+    c('jakarta', 'جاكرتا', 'Jakarta', 'إندونيسيا', 'Indonesia', -6.2088, 106.8456, SGP, 'ID'),
+    c('surabaya', 'سورابايا', 'Surabaya', 'إندونيسيا', 'Indonesia', -7.2575, 112.7521, SGP, 'ID'),
+    c('bandung', 'باندونغ', 'Bandung', 'إندونيسيا', 'Indonesia', -6.9175, 107.6191, SGP, 'ID'),
+    c('medan', 'ميدان', 'Medan', 'إندونيسيا', 'Indonesia', 3.5952, 98.6722, SGP, 'ID'),
+    c('kualalumpur', 'كوالالمبور', 'Kuala Lumpur', 'ماليزيا', 'Malaysia', 3.1390, 101.6869, MSC, 'MY'),
+    c('penang', 'بينانغ', 'Penang', 'ماليزيا', 'Malaysia', 5.4164, 100.3327, MSC, 'MY'),
+    c('singapore', 'سنغافورة', 'Singapore', 'سنغافورة', 'Singapore', 1.3521, 103.8198, SGP, 'SG'),
+    c('brunei', 'بندر سري بكاوان', 'Bandar Seri Begawan', 'بروناي', 'Brunei', 4.9031, 114.9398, SGP, 'BN'),
+    c('bangkok', 'بانكوك', 'Bangkok', 'تايلاند', 'Thailand', 13.7563, 100.5018, SGP, 'TH'),
+    // East Asia
+    c('tokyo', 'طوكيو', 'Tokyo', 'اليابان', 'Japan', 35.6762, 139.6503, MWL, 'JP'),
+    c('seoul', 'سيول', 'Seoul', 'كوريا الجنوبية', 'South Korea', 37.5665, 126.9780, MWL, 'KR'),
+    // Turkey: Diyanet's angles are MWL's; its safety minutes (temkin) aren't added, so Dhuhr, Asr and Maghrib come
+    // 4 to 8 minutes before the mosques' (upstream's note).
+    c('istanbul', 'إسطنبول', 'Istanbul', 'تركيا', 'Turkey', 41.0082, 28.9784, MWL, 'TR'),
+    c('ankara', 'أنقرة', 'Ankara', 'تركيا', 'Turkey', 39.9334, 32.8597, MWL, 'TR'),
+    // Europe
+    c('london', 'لندن', 'London', 'المملكة المتحدة', 'United Kingdom', 51.5074, -0.1278, MWL, 'GB'),
+    c('birmingham', 'برمنغهام', 'Birmingham', 'المملكة المتحدة', 'United Kingdom', 52.4862, -1.8904, MWL, 'GB'),
+    c('manchester', 'مانشستر', 'Manchester', 'المملكة المتحدة', 'United Kingdom', 53.4808, -2.2426, MWL, 'GB'),
+    c('paris', 'باريس', 'Paris', 'فرنسا', 'France', 48.8566, 2.3522, MWL, 'CE'),
+    c('berlin', 'برلين', 'Berlin', 'ألمانيا', 'Germany', 52.5200, 13.4050, MWL, 'CE'),
+    c('frankfurt', 'فرانكفورت', 'Frankfurt', 'ألمانيا', 'Germany', 50.1109, 8.6821, MWL, 'CE'),
+    c('amsterdam', 'أمستردام', 'Amsterdam', 'هولندا', 'Netherlands', 52.3676, 4.9041, MWL, 'CE'),
+    c('brussels', 'بروكسل', 'Brussels', 'بلجيكا', 'Belgium', 50.8503, 4.3517, MWL, 'CE'),
+    c('vienna', 'فيينا', 'Vienna', 'النمسا', 'Austria', 48.2082, 16.3738, MWL, 'CE'),
+    c('zurich', 'زيورخ', 'Zurich', 'سويسرا', 'Switzerland', 47.3769, 8.5417, MWL, 'CE'),
+    c('rome', 'روما', 'Rome', 'إيطاليا', 'Italy', 41.9028, 12.4964, MWL, 'CE'),
+    c('madrid', 'مدريد', 'Madrid', 'إسبانيا', 'Spain', 40.4168, -3.7038, MWL, 'CE'),
+    c('sarajevo', 'سراييفو', 'Sarajevo', 'البوسنة والهرسك', 'Bosnia and Herzegovina', 43.8563, 18.4131, MWL, 'CE'),
+    // Africa
+    c('nairobi', 'نيروبي', 'Nairobi', 'كينيا', 'Kenya', -1.2921, 36.8219, MWL, 'KE'),
+    c('lagos', 'لاغوس', 'Lagos', 'نيجيريا', 'Nigeria', 6.5244, 3.3792, MWL, 'NG'),
+    c('johannesburg', 'جوهانسبرغ', 'Johannesburg', 'جنوب أفريقيا', 'South Africa', -26.2041, 28.0473, MWL, 'ZA'),
+    // Oceania
+    c('sydney', 'سيدني', 'Sydney', 'أستراليا', 'Australia', -33.8688, 151.2093, MWL, 'AU'),
+    c('melbourne', 'ملبورن', 'Melbourne', 'أستراليا', 'Australia', -37.8136, 144.9631, MWL, 'AU'),
+    c('auckland', 'أوكلاند', 'Auckland', 'نيوزيلندا', 'New Zealand', -36.8485, 174.7633, MWL, 'NZ')
   ];
+
+  /**
+   * Location's first step: each region's countries (English names, as in CITIES), in the order of Text.regions.
+   * Every country in CITIES must be in exactly one region, or its cities can't be picked (Prefs.REGIONS).
+   */
+  var REGIONS = [
+    ['Egypt', 'Saudi Arabia', 'UAE', 'Kuwait', 'Qatar', 'Jordan', 'Palestine', 'Lebanon', 'Syria', 'Iraq', 'Bahrain',
+      'Oman', 'Yemen'],
+    ['India', 'Pakistan', 'Bangladesh', 'Sri Lanka', 'Maldives', 'Indonesia', 'Malaysia', 'Singapore', 'Brunei',
+      'Thailand', 'Japan', 'South Korea', 'Turkey'],
+    ['United Kingdom', 'France', 'Germany', 'Netherlands', 'Belgium', 'Austria', 'Switzerland', 'Italy', 'Spain',
+      'Bosnia and Herzegovina'],
+    ['United States', 'Canada'],
+    ['Kenya', 'Nigeria', 'South Africa'],
+    ['Australia', 'New Zealand']
+  ];
+
+  /** The region (index into REGIONS) a city's country is in; -1 if it is in none. */
+  function region(city) {
+    for (var r = 0; r < REGIONS.length; r++) if (REGIONS[r].indexOf(city.countryEn) >= 0) return r;
+    return -1;
+  }
 
   function cityById(id) {
     for (var i = 0; i < CITIES.length; i++) if (CITIES[i].id === id) return CITIES[i];
@@ -113,14 +215,20 @@
   // ---------------------------------------------------------------- local time
 
   /**
-   * Standard offset in minutes and the summer-time rule, as of 2026. Written out rather than taken from the
-   * engines' time-zone data: Chromium 68 and Node 8 predate Egypt's return to summer time (2023) and Jordan's
-   * and Syria's move to +3 all year (2022).
+   * Standard offset in minutes and the summer-time rule, as of 2026: a country's code, or for the United States
+   * and Canada the zone's (ET, CT, PT), and CE for the Central European countries. Written out rather than taken
+   * from the engines' time-zone data: Chromium 68 and Node 8 predate Egypt's return to summer time (2023) and
+   * Jordan's and Syria's move to +3 all year (2022).
    */
   var ZONES = {
     EG: { std: 120, dst: 'egypt' }, SA: { std: 180 }, AE: { std: 240 }, KW: { std: 180 }, QA: { std: 180 },
     JO: { std: 180 }, PS: { std: 120, dst: 'palestine' }, LB: { std: 120, dst: 'lebanon' }, SY: { std: 180 },
-    IQ: { std: 180 }, BH: { std: 180 }, OM: { std: 240 }, YE: { std: 180 }
+    IQ: { std: 180 }, BH: { std: 180 }, OM: { std: 240 }, YE: { std: 180 },
+    ET: { std: -300, dst: 'us' }, CT: { std: -360, dst: 'us' }, PT: { std: -480, dst: 'us' },
+    IN: { std: 330 }, PK: { std: 300 }, BD: { std: 360 }, LK: { std: 330 }, MV: { std: 300 }, ID: { std: 420 },
+    MY: { std: 480 }, SG: { std: 480 }, BN: { std: 480 }, TH: { std: 420 }, JP: { std: 540 }, KR: { std: 540 },
+    TR: { std: 180 }, GB: { std: 0, dst: 'eu' }, CE: { std: 60, dst: 'eu' }, KE: { std: 180 }, NG: { std: 60 },
+    ZA: { std: 120 }, AU: { std: 600, dst: 'australia' }, NZ: { std: 720, dst: 'newzealand' }
   };
 
   /** UTC ms of day `day` (1-based) of month `m` (0-based) in year y at the given UTC hour. */
@@ -133,14 +241,39 @@
     return last - ((wd - weekday + 7) % 7);
   }
 
+  /** Day of month of the first given weekday of a month. */
+  function firstWeekday(y, m, weekday) {
+    return 1 + ((weekday - new Date(Date.UTC(y, m, 1)).getUTCDay() + 7) % 7);
+  }
+
   /** The last Saturday on or before the 30th. */
   function saturdayOnOrBefore30(y, m) {
     var wd = new Date(Date.UTC(y, m, 30)).getUTCDay();
     return 30 - ((wd - 6 + 7) % 7);
   }
 
-  /** Summer time [start, end) as UTC ms for a rule and year. */
-  function dstRange(rule, y) {
+  /**
+   * Summer time [start, end) as UTC ms for a rule and year; std is the zone's standard offset in minutes. In the
+   * southern rules the start (spring, October) comes after the end (autumn, April) of the same year.
+   */
+  function dstRange(rule, y, std) {
+    var s = std * 60000, d = s + 3600000;
+    if (rule === 'us') {
+      // Second Sunday of March 02:00 (standard) to the first Sunday of November 02:00 (summer).
+      return [utcAt(y, 2, firstWeekday(y, 2, 0) + 7, 2) - s, utcAt(y, 10, firstWeekday(y, 10, 0), 2) - d];
+    }
+    if (rule === 'eu') {
+      // Last Sunday of March to the last Sunday of October, both 01:00 UTC.
+      return [utcAt(y, 2, lastWeekday(y, 2, 0), 1), utcAt(y, 9, lastWeekday(y, 9, 0), 1)];
+    }
+    if (rule === 'australia') {
+      // First Sunday of October 02:00 (standard); ends the first Sunday of April 03:00 (summer).
+      return [utcAt(y, 9, firstWeekday(y, 9, 0), 2) - s, utcAt(y, 3, firstWeekday(y, 3, 0), 3) - d];
+    }
+    if (rule === 'newzealand') {
+      // Last Sunday of September 02:00 (standard); ends the first Sunday of April 03:00 (summer).
+      return [utcAt(y, 8, lastWeekday(y, 8, 0), 2) - s, utcAt(y, 3, firstWeekday(y, 3, 0), 3) - d];
+    }
     if (rule === 'egypt') {
       // Last Friday of April 00:00 (+2) to the end of the last Thursday of October (24:00, +3).
       return [utcAt(y, 3, lastWeekday(y, 3, 5), 0) - 2 * 3600000, utcAt(y, 9, lastWeekday(y, 9, 4) + 1, 0) - 3 * 3600000];
@@ -157,9 +290,10 @@
   function zoneOffset(zone, ms) {
     var z = ZONES[zone] || ZONES.EG;
     if (!z.dst) return z.std;
-    var y = new Date(ms).getUTCFullYear();
-    var r = dstRange(z.dst, y);
-    return ms >= r[0] && ms < r[1] ? z.std + 60 : z.std;
+    var r = dstRange(z.dst, new Date(ms).getUTCFullYear(), z.std);
+    // A southern summer runs over the new year: from this year's start, or until this year's end.
+    var summer = r[0] < r[1] ? ms >= r[0] && ms < r[1] : ms >= r[0] || ms < r[1];
+    return summer ? z.std + 60 : z.std;
   }
 
   /** The engine's time zone name, '' when it has none to tell. */
@@ -178,12 +312,22 @@
     return new Date().getTimezoneOffset() !== 0 || new Date(Date.UTC(new Date().getUTCFullYear(), 6, 1)).getTimezoneOffset() !== 0;
   }
 
-  /** The IANA zones of the cities' countries (Jerusalem as Palestine, as the city list has it). */
+  /** The IANA zones of the cities' zones (Jerusalem as Palestine, as the city list has it). */
   var IANA = {
     'Africa/Cairo': 'EG', 'Egypt': 'EG', 'Asia/Riyadh': 'SA', 'Asia/Dubai': 'AE', 'Asia/Kuwait': 'KW', 'Asia/Qatar': 'QA',
     'Asia/Amman': 'JO', 'Asia/Hebron': 'PS', 'Asia/Gaza': 'PS', 'Asia/Jerusalem': 'PS', 'Asia/Tel_Aviv': 'PS',
     'Israel': 'PS', 'Asia/Beirut': 'LB', 'Asia/Damascus': 'SY', 'Asia/Baghdad': 'IQ', 'Asia/Bahrain': 'BH',
-    'Asia/Muscat': 'OM', 'Asia/Aden': 'YE'
+    'Asia/Muscat': 'OM', 'Asia/Aden': 'YE',
+    'America/New_York': 'ET', 'US/Eastern': 'ET', 'America/Toronto': 'ET', 'Canada/Eastern': 'ET',
+    'America/Chicago': 'CT', 'US/Central': 'CT', 'America/Los_Angeles': 'PT', 'US/Pacific': 'PT',
+    'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN', 'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Dacca': 'BD',
+    'Asia/Colombo': 'LK', 'Indian/Maldives': 'MV', 'Asia/Jakarta': 'ID', 'Asia/Kuala_Lumpur': 'MY',
+    'Asia/Singapore': 'SG', 'Singapore': 'SG', 'Asia/Brunei': 'BN', 'Asia/Bangkok': 'TH', 'Asia/Tokyo': 'JP',
+    'Japan': 'JP', 'Asia/Seoul': 'KR', 'Europe/Istanbul': 'TR', 'Asia/Istanbul': 'TR', 'Turkey': 'TR',
+    'Europe/London': 'GB', 'Europe/Paris': 'CE', 'Europe/Berlin': 'CE', 'Europe/Amsterdam': 'CE',
+    'Europe/Brussels': 'CE', 'Europe/Vienna': 'CE', 'Europe/Zurich': 'CE', 'Europe/Rome': 'CE', 'Europe/Madrid': 'CE',
+    'Europe/Sarajevo': 'CE', 'Africa/Nairobi': 'KE', 'Africa/Lagos': 'NG', 'Africa/Johannesburg': 'ZA',
+    'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Pacific/Auckland': 'NZ'
   };
 
   /**
@@ -243,11 +387,14 @@
 
   /**
    * The six times (UTC ms) for a local calendar day y, m (0-based), d, as adhan-java's DateComponents does:
-   * the calendar day only, whatever the engine's own zone.
+   * the calendar day only, whatever the engine's own zone. Whole minutes: where the high-latitude rule sets Fajr
+   * or Isha (Manchester in June), adhan-js's rounding keeps half a second.
    */
   function times(lat, lng, method, madhab, y, m, d) {
     var t = new adhan.PrayerTimes(new adhan.Coordinates(lat, lng), new Date(y, m, d, 12), params(method, madhab));
-    return [t.fajr.getTime(), t.sunrise.getTime(), t.dhuhr.getTime(), t.asr.getTime(), t.maghrib.getTime(), t.isha.getTime()];
+    return [t.fajr, t.sunrise, t.dhuhr, t.asr, t.maghrib, t.isha].map(function (x) {
+      return Math.floor(x.getTime() / 60000) * 60000;
+    });
   }
 
   /** The six times for the local day containing ms (+ days), in a clock's zone. */
@@ -268,7 +415,8 @@
 
   return {
     FAJR: FAJR, SUNRISE: SUNRISE, DHUHR: DHUHR, ASR: ASR, MAGHRIB: MAGHRIB, ISHA: ISHA,
-    METHODS: METHODS, CITIES: CITIES, ZONES: ZONES, cityById: cityById, Clock: Clock, zoneOffset: zoneOffset,
+    METHODS: METHODS, CITIES: CITIES, REGIONS: REGIONS, region: region, ZONES: ZONES, cityById: cityById,
+    Clock: Clock, zoneOffset: zoneOffset,
     deviceHasZone: deviceHasZone, deviceZoneName: deviceZoneName, clockFor: clockFor,
     times: times, timesFor: timesFor, qibla: qibla, angles: angles, isFriday: isFriday
   };

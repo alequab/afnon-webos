@@ -9,7 +9,7 @@ Arabic (right to left) first, with English.
 > features, the cities and the texts all come from egyjs's Afnon. This repository brings them to LG TVs,
 > under the same MIT licence. Thank you, egyjs.
 
-This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 74 cities and
+This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 136 cities and
 the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
 Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of RAM.
@@ -27,16 +27,17 @@ Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of 
   reminder («اقترب موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
   is off, Afnon can say «حان الآن موعد صلاة …» instead.
 - **Friday and Ramadan.** Jumu'ah in place of Dhuhr with a Surat al-Kahf reminder; iftar and suhoor in Ramadan.
-- **Quran radio.** Broadcast Quran radio from Cairo, Nablus, Qatar (two) and Jordan, Shabab FM Quran, and ten
+- **Quran radio.** Broadcast Quran radio from Nablus, Qatar (two) and Jordan, Shabab FM Quran, and ten
   reciters' 24/7 channels from mp3quran.net. Each plays the station's own public stream.
 - **Screen off while listening.** The panel goes dark while the radio keeps playing; any button brings it
   back. After a while without a key press, a dim screen with the clock and next prayer comes first, moving now
   and then so nothing burns in.
 - **Night mode.** The button next to Settings switches every screen to calmer, dimmer colours.
-- **74 cities in 13 countries** (Egypt, Saudi Arabia, the UAE, Kuwait, Qatar, Jordan, Palestine, Lebanon, Syria,
-  Iraq, Bahrain, Oman and Yemen), each with its usual calculation method and its own time-zone rules. Times
-  are calculated on the TV with [adhan-js](https://github.com/batoulapps/adhan-js); they match the Android app's
-  adhan-java exactly (12,240 times compared, none differ).
+- **136 cities in 43 countries** across the Arab world, Asia, Europe, the Americas, Africa and Oceania, picked by
+  region, then country, then city. Each starts on the calculation method and Asr school its mosques use, and
+  keeps its own time-zone rules, summer time included. Times are calculated on the TV with
+  [adhan-js](https://github.com/batoulapps/adhan-js); they match the Android app's adhan-java exactly (20,160
+  times compared, none differ).
 - **No accounts, ads or tracking.** Only the radio uses the internet.
 
 ### How it differs from the Android version
@@ -50,6 +51,7 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
 - The radio plays while Afnon is open and stops when you leave it.
 - Afnon never changes the TV's volume. On Android it turns a muted TV up for the adhan.
 - The remote's app buttons stay LG's own.
+- There's no Cairo Quran radio station.
 
 ## Install
 
@@ -88,7 +90,6 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
 
 - **Prayer times, the Qibla, reminders and the adhan** all work offline.
 - **The radio** connects only to the station you pick:
-  - `stream.radiojar.com`
   - `quran-radio.org`
   - `streaming.zaytonatube.com`
   - `live.kwikmotion.com`
@@ -138,7 +139,7 @@ The service logs to `/tmp/afnon-lg.log` on the TV (`ares-novacom --device lg --r
 
 أفنون على تلفاز LG: الصلاة القادمة وعدّ تنازلي في محراب، ومواقيت اليوم دون إنترنت، والقبلة، والأذان في وقته
 فوق أي تطبيق، والتنبيه قبل كل صلاة نصًّا وصوتًا، ووضعا الجمعة ورمضان، وإذاعات القرآن الكريم، وإطفاء الشاشة أثناء
-الاستماع، والوضع الليلي. ٧٤ مدينة في ١٣ دولة، والعربية أولًا.
+الاستماع، والوضع الليلي. ١٣٦ مدينة في ٤٣ دولة تُختار بالمنطقة ثم الدولة ثم المدينة، والعربية أولًا.
 
 يُثبَّت عبر «وضع المطوّر» من LG بحساب مطوّر مجاني، ثم أوامر الخطوات أعلاه. لا حسابات ولا إعلانات ولا تتبّع،
 والإذاعة وحدها تستخدم الإنترنت.

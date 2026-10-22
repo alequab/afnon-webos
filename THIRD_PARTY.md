@@ -11,7 +11,7 @@ The MIT licence in `LICENSE` covers Afnon's own code. These parts belong to othe
 | [Marcellus](https://fonts.google.com/specimen/Marcellus) by Astigmatic | `app/fonts/marcellus_regular.ttf` | SIL Open Font Licence 1.1 |
 | Adhan recordings from [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3) | Not in the source. `tools/fetch-adhans.ps1` downloads them | None stated. Credited here; any recording is removed on request from its rights holder. |
 | Spoken reminders («اقترب موعد صلاة …», «حان الآن موعد صلاة …») | Not in the source. `tools/make-voice.ps1` records them on your PC with Windows' Arabic voice | Made by you, for your own TV |
-| Quran radio streams: إذاعة القرآن الكريم in Cairo, Nablus, Qatar and Jordan, Shabab FM (Nablus), and the reciters' channels of mp3quran.net | Played from each station's public stream, never stored | Belong to the stations. Afnon is not affiliated with any of them. |
+| Quran radio streams: إذاعة القرآن الكريم in Nablus, Qatar and Jordan, Shabab FM (Nablus), and the reciters' channels of mp3quran.net | Played from each station's public stream, never stored | Belong to the stations. Afnon is not affiliated with any of them. |
 
 The fonts can be renamed or bundled under the OFL, but not sold on their own. The full text is at
 https://openfontlicense.org.

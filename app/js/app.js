@@ -71,7 +71,7 @@
   var DEFAULTS = {
     locale: 'system', digits: '', clock: 'system', city: 'cairo', method: null, madhab: 'shafi', hijri: 0,
     facing: -1, remind: 15, remindVoice: true, announce: true, adhan: true, callClose: 10,
-    bells: [1, 0, 1, 1, 1, 1], voice: 'alafasy', voiceFajr: 'chebae_fajr', station: 'cairo', radioResume: true,
+    bells: [1, 0, 1, 1, 1, 1], voice: 'alafasy', voiceFajr: 'chebae_fajr', station: 'nablus', radioResume: true,
     radioDark: 0, night: false
   };
   var S = loadSettings();
@@ -1007,7 +1007,7 @@
     if (s === PRAYER_S) return [
       { kind: VALUE, label: t.location, help: function () { return t.locationHelp(city.lat, city.lng); },
         value: function () { return t.ar ? t.place(city.ar, city.countryAr) : t.place(city.en, city.countryEn); },
-        open: chooseCountry },
+        open: chooseRegion },
       { kind: VALUE, label: t.method, help: function () { return t.methodAngles(P.angles(method())); },
         value: function () { return t.methodName(method()); },
         open: function () {
@@ -1273,7 +1273,7 @@
 
   // ---------------------------------------------------------------- the list chooser (cities, methods, voices…)
 
-  var ch = { on: false, items: [], index: 0, scroll: 0 };
+  var ch = { on: false, items: [], index: 0, scroll: 0, back: null };
 
   function buildChooser() {
     ch.scrim = el('div', 'scrim', stage);
@@ -1286,10 +1286,14 @@
     for (var i = 0; i < 3; i++) el('span', null, ch.hints);
   }
 
-  /** A list over the screen: OK picks, Back cancels. onFocus, if given, hears each item as focus reaches it. */
+  /**
+   * A list over the screen: OK picks, Back cancels, or opens the list before it when the caller sets ch.back after
+   * this. onFocus, if given, hears each item as focus reaches it.
+   */
   function openChooser(title, items, selected, pick, onFocus) {
     if (!ch.scrim) buildChooser();
     ch.pick = pick;
+    ch.back = null;
     ch.onFocus = onFocus || null;
     ch.returnTo = cur;
     setText(ch.head, title);
@@ -1345,27 +1349,53 @@
   }
 
   function chooserKey(k) {
-    if (k === KEY.BACK) return closeChooser(null);
+    if (k === KEY.BACK) {
+      var back = ch.back;
+      closeChooser(null);
+      if (back) setTimeout(back, 0);
+      return;
+    }
     if (k === KEY.OK) return closeChooser(ch.index);
     if (k === KEY.UP && ch.index > 0) focus(ch.items[ch.index - 1]);
     else if (k === KEY.DOWN && ch.index < ch.count - 1) focus(ch.items[ch.index + 1]);
   }
 
-  /** Location: the country, then that country's cities. A country with a single city takes it at once. */
-  function chooseCountry() {
-    var countries = [];
-    P.CITIES.forEach(function (c) { var n = t.ar ? c.countryAr : c.countryEn; if (countries.indexOf(n) < 0) countries.push(n); });
-    var sel = countries.indexOf(t.ar ? city.countryAr : city.countryEn);
-    openChooser(t.country(), countries, sel, function (i) { setTimeout(function () { chooseCity(countries[i]); }, 0); });
+  /**
+   * Location: the region, then its countries, then the country's cities, so no list is longer than 16. A country
+   * with a single city takes it at once. Back goes one step back.
+   */
+  function chooseRegion() {
+    openChooser(t.region(), t.regions(), P.region(city), function (r) { setTimeout(function () { chooseCountry(r); }, 0); });
   }
-  function chooseCity(country) {
+  /** One region's countries, A to Z in the app's language ("ال" not counted), as SettingsActivity sorts them. */
+  function chooseCountry(r) {
+    var countries = [];
+    P.REGIONS[r].forEach(function (en) {
+      for (var i = 0; i < P.CITIES.length; i++) {
+        if (P.CITIES[i].countryEn === en) { countries.push(t.ar ? P.CITIES[i].countryAr : en); break; }
+      }
+    });
+    var order = null;
+    try { order = new Intl.Collator(t.ar ? 'ar' : 'en'); } catch (e) { /* code-point order below */ }
+    function bare(n) { return n.replace(/^ال/, ''); }
+    countries.sort(function (a, b) {
+      a = bare(a); b = bare(b);
+      return order ? order.compare(a, b) : a < b ? -1 : a > b ? 1 : 0;
+    });
+    var sel = countries.indexOf(t.ar ? city.countryAr : city.countryEn);
+    openChooser(t.regions()[r], countries, sel, function (i) { setTimeout(function () { chooseCity(countries[i], r); }, 0); });
+    ch.back = chooseRegion;
+  }
+  /** A city also takes its usual method and Asr school (Prefs.setCity); their rows can still change them. */
+  function chooseCity(country, r) {
     var found = [];
     P.CITIES.forEach(function (c) { if ((t.ar ? c.countryAr : c.countryEn) === country) found.push(c); });
-    function take(c) { S.city = c.id; S.method = c.method; changed(true); refreshSettings(); }
+    function take(c) { S.city = c.id; S.method = c.method; S.madhab = c.madhab; changed(true); refreshSettings(); }
     if (found.length === 1) return take(found[0]);
     var sel = 0;
     found.forEach(function (c, i) { if (c.id === city.id) sel = i; });
     openChooser(country, found.map(function (c) { return t.ar ? c.ar : c.en; }), sel, function (i) { take(found[i]); });
+    ch.back = function () { chooseCountry(r); };
   }
   /** Station: the broadcast stations or the reciters, then one of them. Playing radio moves to it at once. */
   function chooseStation() {

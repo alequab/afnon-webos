@@ -195,6 +195,12 @@
   T.preview = function () { return this.ar ? 'العصر اليوم بهذه الإعدادات' : 'Asr today with these settings'; };
   T.location = function () { return this.ar ? 'الموقع' : 'Location'; };
   T.country = function () { return this.ar ? 'الدولة' : 'Country'; };
+  T.region = function () { return this.ar ? 'المنطقة' : 'Region'; };
+  /** Location's first step, in the order of Prayer.REGIONS. */
+  T.regions = function () {
+    return this.ar ? ['الدول العربية', 'آسيا', 'أوروبا', 'الأمريكتان', 'أفريقيا', 'أوقيانوسيا']
+      : ['Arab world', 'Asia', 'Europe', 'Americas', 'Africa', 'Oceania'];
+  };
   T.locationHelp = function (lat, lng) {
     var ns = lat >= 0 ? (this.ar ? 'ش' : 'N') : (this.ar ? 'ج' : 'S');
     var ew = lng >= 0 ? (this.ar ? 'ق' : 'E') : (this.ar ? 'غ' : 'W');

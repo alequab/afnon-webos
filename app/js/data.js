@@ -17,7 +17,6 @@
    * MP3 or AAC. Reciters are mp3quran.net's 24/7 channels, MP3 at 128 kbps.
    */
   var STATIONS = [
-    station('cairo', QURAN_AR, QURAN_EN, 'القاهرة · 98٫2 إف إم', 'Cairo · 98.2 FM', 'https://stream.radiojar.com/8s5u5tpdtwzuv'),
     station('nablus', QURAN_AR, QURAN_EN, 'نابلس', 'Nablus', 'https://quran-radio.org:8899/;'),
     station('shabab', 'شباب إف إم · قرآن', 'Shabab FM Quran', 'نابلس', 'Nablus', 'https://streaming.zaytonatube.com/ShababFM.aac'),
     station('qatar', QURAN_AR, QURAN_EN, 'قطر', 'Qatar', 'https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8'),
