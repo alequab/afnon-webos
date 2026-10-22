@@ -4,9 +4,13 @@ The prayer day on an LG TV: the next prayer and a live countdown in a mihrab arc
 Qibla, the adhan at prayer time, reminders before each prayer, Friday and Ramadan modes, and Quran radio.
 Arabic (right to left) first, with English.
 
-This is the LG (webOS) version of [Afnon](https://github.com/egyjs/afnon-android-tv-launcher), the Android TV
-launcher. It keeps the same look, the same 74 cities and the same prayer times, rebuilt as a light web app for
-webOS, so it runs smoothly on low-memory TVs.
+> **Afnon was created by [egyjs](https://github.com/egyjs)**:
+> [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). The design, the
+> features, the cities and the texts are his work. This repository brings them to LG TVs, under the same MIT
+> licence. Thank you, egyjs.
+
+This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 74 cities and
+the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
 Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of RAM.
 

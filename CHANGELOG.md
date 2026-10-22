@@ -35,4 +35,4 @@ First version, following the Android app's features and look.
   - A desktop preview.
   - A comparison of every time against the Android app's adhan-java.
 
-[0.1.0]: https://github.com/OWNER/REPO/releases/tag/v0.1.0
+[0.1.0]: https://github.com/alequab/afnon-webos/releases/tag/v0.1.0
