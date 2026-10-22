@@ -6,8 +6,8 @@ Arabic (right to left) first, with English.
 
 > **Afnon was created by [egyjs](https://github.com/egyjs)**:
 > [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). The design, the
-> features, the cities and the texts are his work. This repository brings them to LG TVs, under the same MIT
-> licence. Thank you, egyjs.
+> features, the cities and the texts all come from egyjs's Afnon. This repository brings them to LG TVs,
+> under the same MIT licence. Thank you, egyjs.
 
 This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 74 cities and
 the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
