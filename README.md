@@ -20,8 +20,8 @@ Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of 
   adhan, then goes back. 14 voices plus a separate Fajr voice. It closes when the adhan ends, or 1, 5 or 10
   minutes after it appears; Back stops it at any time.
 - **Reminders.** 5, 10, 15, 20 or 30 minutes before each prayer, a notice on the TV, with an optional spoken
-  reminder («اقترب موعد صلاة العصر»). When a prayer's adhan is off, Afnon can say «حان الآن موعد صلاة …»
-  instead.
+  reminder («اقترب موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
+  is off, Afnon can say «حان الآن موعد صلاة …» instead.
 - **Friday and Ramadan.** Jumu'ah in place of Dhuhr with a Surat al-Kahf reminder; iftar and suhoor in Ramadan.
 - **Quran radio.** Broadcast Quran radio from Cairo, Nablus, Qatar (two) and Jordan, Shabab FM Quran, and ten
   reciters' 24/7 channels from mp3quran.net. Each plays the station's own public stream.
@@ -98,7 +98,8 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
 ## Known issues
 
 - **Jordan:** the Quran radio station from Jordan plays nothing on webOS 5; the other stations play.
-- **The spoken reminder over another app** may not be heard on every model. The on-screen notice always shows.
+- **The spoken reminder over another app** plays alongside it (heard over YouTube on the tested TV). If a
+  model doesn't allow that, the on-screen notice still shows.
 - **TVs set to a fixed time offset:** some models only allow one ("Custom" time zone), which doesn't follow
   summer and winter time. Afnon uses your city's own rules, so its times stay right, but the TV's own clock may
   be an hour out after the change.
