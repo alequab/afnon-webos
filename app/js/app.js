@@ -111,7 +111,7 @@
     t.cityName = ar ? city.ar : city.en;
     html.lang = ar ? 'ar' : 'en';
     html.dir = ar ? 'rtl' : 'ltr';
-    html.className = (h24 ? 'h24' : 'h12') + (S.night ? ' night' : '');
+    html.className = (h24 ? 'h24' : 'h12') + (S.night ? ' night' : '') + (ar && !eastern ? ' latn' : '');
   }
 
   /** Night mode: one class on <html> swaps the colour set (css/afnon.css); nothing is rebuilt. */
@@ -327,7 +327,7 @@
     var info = place(el('div', 'archinfo', parent), 136, infoTop, 520);
     a.label = el('div', 'lbl caps mist', info);
     a.name = el('div', 'name dispb', info);
-    a.count = el('div', 'count disp tnum ltr', info);
+    a.count = el('div', 'count disp num tnum ltr', info);
     a.sub = el('div', 'sub', info);
     a.sub.style.fontSize = subSize + 'px';
     a.sub.style.marginTop = subGap + 'px';
@@ -341,12 +341,38 @@
   /** mm:ss under an hour at 150px, h:mm:ss above at 120px; gold-200 outline inside the last 15 minutes. */
   function renderCountdown(a, day, now, focused) {
     var left = Text.secondsUntil(day.nextTime, now);
-    setText(a.count, t.d(Text.duration(left, true)));
+    var count = t.d(Text.duration(left, true));
+    setText(a.count, count);
     var hours = left >= 3600;
-    if (a.hours !== hours) { a.hours = hours; a.count.classList.toggle('h', hours); }
+    if (a.hours !== hours) { a.hours = hours; a.count.classList.toggle('h', hours); a.head = null; }
+    // Marcellus has no tabular digits (its 0 is nearly three 1s wide), so a centred countdown would sway every
+    // second. It starts where the text is centred with average-width seconds, set again only when something
+    // before the seconds changes: a digit that isn't changing never moves (Screen.renderCountdown).
+    if (!marcellusDigits()) {
+      if (a.head !== '') { a.head = ''; a.count.style.paddingLeft = ''; }
+    } else {
+      var head = count.slice(0, -2);
+      if (head !== a.head) {
+        var px = hours ? 120 : 150, w = textWidth(head, px) + textWidth('0123456789', px) / 5;
+        a.count.style.paddingLeft = Math.max(0, Math.round((520 - w) / 2)) + 'px';
+        // Until the font has loaded, the width is the fallback's: measure again next second.
+        a.head = document.fonts && document.fonts.status !== 'loaded' ? null : head;
+      }
+    }
     var st = left <= APPROACH_S ? 'near' : focused ? 'focused' : '';
     if (a.state !== st) { a.state = st; a.svg.setAttribute('class', 'arch ' + st); }
     return left;
+  }
+
+  /** Whether the big numbers are in Marcellus: English, or Arabic with Western digits (html.latn). */
+  function marcellusDigits() { return !t.ar || !t.eastern; }
+
+  var measure = null;
+  /** The width of s in Marcellus (Amiri for what it lacks) at px, from a canvas: no layout. */
+  function textWidth(s, px) {
+    if (!measure) measure = document.createElement('canvas').getContext('2d');
+    measure.font = px + 'px Marcellus, Amiri, serif';
+    return measure.measureText(s).width;
   }
 
   // ---------------------------------------------------------------- sound: one radio player, one for the rest
@@ -498,7 +524,7 @@
     foot._ok = function () { openDay(); };
 
     var when = place(el('div', 'col', e), 760, 56);
-    home.clock = timeEl(when, 'clock disp tnum');
+    home.clock = timeEl(when, 'clock disp num tnum');
     // Under the clock the Hijri date (with the city) first, then the Gregorian, smaller and in mist.
     home.date1 = el('div', null, when);
     home.date1.style.marginTop = '6px';
@@ -785,7 +811,7 @@
     var b = r.el = place(el('div', 't r4 dayrow', parent), 760, 236 + i * 116, 620, 104);
     r.nm = el('div', 'nm', b);
     r.st = el('div', 'st', b);
-    r.tm = timeEl(b, 'tm disp');
+    r.tm = timeEl(b, 'tm disp num');
     r.bell = el('div', 'bell', b);
     r.bell.appendChild(icon('bell', 26, 2));
     b._ok = function () {
@@ -813,7 +839,7 @@
     day.dial.svg.style.marginTop = '14px';
     day.northLabel = el('div', 'mist', q);
     day.northLabel.style.cssText = 'font-size:20px;margin-top:8px';
-    day.degrees = el('div', 'deg disp ltr', q);
+    day.degrees = el('div', 'deg disp num ltr', q);
     day.direction = el('div', 'dir', q);
     day.qHint = el('div', 'hint', q);
     var b = day.room = place(el('div', 't roombtn', parent), 1424 + 32, 236 + 698 - 28 - 64, 400 - 64, 64);
@@ -983,19 +1009,23 @@
 
   // ---------------------------------------------------------------- Settings (SettingsActivity)
 
-  var PRAYER_S = 0, REMIND_S = 1, RADIO_S = 2, DISPLAY_S = 3, SECTIONS = 4;
+  var PRAYER_S = 0, REMIND_S = 1, RADIO_S = 2, DISPLAY_S = 3, NEWS_S = 4, SECTIONS = 5;
   var VALUE = 0, SEG = 1, STEP = 2, TOGGLE = 3;
   var set = screens.settings = {
     section: PRAYER_S, onNav: true, rowIndex: 0,
     build: buildSettings,
-    show: function () { showSection(set.section); if (set.onNav) focusNav(); else focusRow(set.rowIndex); refreshSettings(); },
+    show: function () {
+      showSection(set.section);
+      if (set.onNav) focusNav(); else if (set.section === NEWS_S) focusNews(); else focusRow(set.rowIndex);
+      refreshSettings();
+    },
     hide: function () { stopPreview(); }
   };
 
   function openSettings() { set.onNav = true; show('settings'); }
 
   function sectionName(i) {
-    return [t.sectionPrayer(), t.sectionReminders(), t.sectionRadio(), t.sectionDisplay()][i];
+    return [t.sectionPrayer(), t.sectionReminders(), t.sectionRadio(), t.sectionDisplay(), t.sectionNews()][i];
   }
 
   function digitsOf(a) { return a.map(function (s) { return t.d(s); }); }
@@ -1004,6 +1034,7 @@
   /** Rows by section: what each shows and what ◀▶ and OK do (Row in SettingsActivity). */
   function rowsFor(s) {
     var REMIND = [5, 10, 15, 20, 30, 0], CLOSE = [0, 1, 5, 10], DARK = [0, 15, -1];
+    if (s === NEWS_S) return [];
     if (s === PRAYER_S) return [
       { kind: VALUE, label: t.location, help: function () { return t.locationHelp(city.lat, city.lng); },
         value: function () { return t.ar ? t.place(city.ar, city.countryAr) : t.place(city.en, city.countryEn); },
@@ -1206,8 +1237,29 @@
     setTime(set.previewValue, dayAt(Date.now()).times[ASR]);
   }
 
+  /**
+   * What's new: the latest releases, newest first, each its version and a few short lines (Text.news), in the
+   * app's language. Read-only, built the first time its section opens.
+   */
+  function buildNews(g) {
+    var page = set.news = place(el('div', 'news ui', g), 640, 112, 1184, 976 - 24 - 112);
+    var list = set.newsList = el('div', null, page);
+    t.news().forEach(function (group) {
+      el('div', 'nhead gold', list, t.newsVersion(group[0]));
+      for (var i = 1; i < group.length; i++) el('div', 'nline', list, '•  ' + t.d(group[i]));
+    });
+    page._focus = function () { setHints(set.hints, [t.hintMove(), t.hintBackMenu()]); };
+  }
+
+  /** Into What's new: ▲▼ scroll it, toward the start or Back return to the sections. */
+  function focusNews() {
+    set.onNav = false;
+    focus(set.news);
+  }
+
   function showSection(s) {
     set.section = s;
+    if (s === NEWS_S && !set.news) buildNews(set.groups[NEWS_S]);
     for (var i = 0; i < SECTIONS; i++) {
       set.groups[i].style.display = i === s ? '' : 'none';
       set.nav[i].classList.toggle('open', i === s);
@@ -1259,7 +1311,14 @@
       if (vertical) {
         var to = set.section + up;
         if (to >= 0 && to < SECTIONS) { showSection(to); focusNav(); }
-      } else if (k === KEY.OK || (toEnd && (k === KEY.LEFT || k === KEY.RIGHT))) focusRow(0);
+      } else if (k === KEY.OK || (toEnd && (k === KEY.LEFT || k === KEY.RIGHT))) {
+        if (set.section === NEWS_S) focusNews(); else focusRow(0);
+      }
+      return;
+    }
+    if (set.section === NEWS_S) {
+      if (vertical) set.news.scrollTop += up * 240;
+      else if (!toEnd && (k === KEY.LEFT || k === KEY.RIGHT)) focusNav();
       return;
     }
     var rows = set.rows[set.section];
@@ -1422,7 +1481,7 @@
     el('div', 'verse2 sacred', c, 'حَيَّ عَلَى الصَّلَاةِ');
     now.label = el('div', 'lbl caps', c, t.nowLabel());
     now.name = el('div', 'name dispb', c);
-    now.when = timeEl(c, 'when disp');
+    now.when = timeEl(c, 'when disp num');
     var play = now.play = el('div', 't callbtn a', c);
     var dismiss = now.dismiss = el('div', 't callbtn b', c, t.dismiss());
     play._ok = function () { if (Sound.kind === 'adhan') stopAdhan(); else startAdhan(); };
@@ -1757,7 +1816,7 @@
     var s = svgEl('svg', { width: DREAM_W, height: DREAM_H, 'class': 'dline' }, g);
     svgEl('path', { d: 'M2 580L2 230C2 120 100 52 220 2C340 52 438 120 438 230L438 580' }, s);
     var c = el('div', 'dcol', g);
-    dream.clock = timeEl(c, 'dclock disp tnum');
+    dream.clock = timeEl(c, 'dclock disp num tnum');
     dream.date = el('div', 'ddate', c);
     el('div', 'drule', c);
     dream.next = el('div', 'dnext', c);

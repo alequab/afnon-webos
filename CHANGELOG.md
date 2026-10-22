@@ -13,12 +13,18 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
   - The United States, Canada, Kenya, Nigeria, South Africa, Australia and New Zealand.
   - Each city has its mosques' calculation method and its own time-zone rules, including summer time in North
     America, Europe, Australia and New Zealand.
+- **Two Saudi Quran stations,** from the Saudi Broadcasting Authority's own streams (as Saudi Radio+ plays
+  them): Holy Quran Radio and Nida Al-Islam Radio.
+- **Settings → What's new,** a short list per release, in the app's language.
 
 ### Changed
 - **Location is picked by region first** (Arab world, Asia, Europe, Americas, Africa, Oceania), then country (A
   to Z), then city, so no list is longer than 16. Back goes one step back.
 - **Picking a city also sets its usual Asr school:** Hanafi for Pakistan, Bangladesh and most Indian cities,
   while Kerala and Chennai stay Shafi'i. The Asr row can still change it.
+- **Arabic with Western digits: the big numbers in Marcellus,** as in English: Home's clock, the arch
+  countdown, the call screen's time, the dim screen's clock, Today's prayers' times and the Qibla degrees.
+  ص/م stay in Amiri. The countdown in Marcellus no longer shifts sideways each second.
 
 ### Removed
 - **The Cairo Quran radio station.** The radio now starts on Nablus.

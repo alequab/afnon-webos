@@ -73,6 +73,8 @@ svg { display: block; overflow: visible; }
 .dispb { font-family: Amiri, serif; font-weight: 700; }
 [lang=en] .dispb { font-family: Marcellus, serif; font-weight: 400; }
 .sacred { font-family: Amiri, serif; font-weight: 400; color: var(--gold); }
+/* Arabic with Western digits: the big numbers in Marcellus, as in English; ص/م fall back to Amiri glyph by glyph. */
+.latn .num { font-family: Marcellus, Amiri, serif; }
 [lang=en] .caps { letter-spacing: 0.2em; text-transform: uppercase; }
 .mist { color: var(--mist); }
 .gold { color: var(--gold); }
@@ -118,6 +120,8 @@ svg { display: block; overflow: visible; }
 .archinfo .name { font-size: 88px; line-height: 1.15; color: var(--gold); white-space: nowrap; }
 .archinfo .count { font-size: 150px; line-height: 1; height: 150px; color: var(--ink); white-space: nowrap; contain: layout paint; }
 .archinfo .count.h { font-size: 120px; line-height: 150px; }
+/* In Marcellus the countdown spans the column from a start renderCountdown sets, so it never re-centres. */
+[lang=en] .archinfo .count, .latn .archinfo .count { align-self: stretch; text-align: left; }
 .archinfo .sub { color: var(--mist); }
 .archfoot { border-radius: 36px; border: 2px solid var(--gold60); background: transparent; display: flex; align-items: center; justify-content: center; font-size: 26px; }
 .archfoot::after { border-radius: 46px; }
@@ -267,6 +271,12 @@ svg { display: block; overflow: visible; }
 [dir=rtl] .sw.on i { transform: translateX(-40px); }
 .srow.f .sw.on { background: var(--lapis9); }
 .srow.f .sw.on i { background: var(--gold); }
+/* What's new: a read-only page in the rows' place; a soft gold outline while it has focus. */
+.news { box-sizing: border-box; padding: 28px 36px; border-radius: 16px; background: var(--lapis8); border: 2px solid transparent; overflow: hidden; scroll-behavior: smooth; }
+.news.f { border-color: var(--gold60); }
+.news .nhead { font-size: 26px; font-weight: 500; line-height: 1.3; }
+.news .nhead ~ .nhead { margin-top: 28px; }
+.news .nline { font-size: 24px; line-height: 1.4; margin-top: 10px; }
 .preview { box-sizing: border-box; width: 424px; height: 124px; padding: 20px 24px; border-radius: 16px; background: var(--lapis8); }
 
 /* The list chooser. */

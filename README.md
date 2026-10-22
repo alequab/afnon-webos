@@ -27,12 +27,15 @@ Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of 
   reminder («اقترب موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
   is off, Afnon can say «حان الآن موعد صلاة …» instead.
 - **Friday and Ramadan.** Jumu'ah in place of Dhuhr with a Surat al-Kahf reminder; iftar and suhoor in Ramadan.
-- **Quran radio.** Broadcast Quran radio from Nablus, Qatar (two) and Jordan, Shabab FM Quran, and ten
-  reciters' 24/7 channels from mp3quran.net. Each plays the station's own public stream.
+- **Quran radio.** Broadcast Quran radio from Nablus, Qatar (two) and Jordan, Shabab FM Quran, the Saudi
+  Broadcasting Authority's Holy Quran Radio and Nida Al-Islam Radio, and ten reciters' 24/7 channels from
+  mp3quran.net. Each plays the station's own public stream.
 - **Screen off while listening.** The panel goes dark while the radio keeps playing; any button brings it
   back. After a while without a key press, a dim screen with the clock and next prayer comes first, moving now
   and then so nothing burns in.
 - **Night mode.** The button next to Settings switches every screen to calmer, dimmer colours.
+- **Arabic with Western digits** draws the big numbers (clock, countdown, times) in the English font, Marcellus.
+- **What's new** in Settings lists each release's changes.
 - **136 cities in 43 countries** across the Arab world, Asia, Europe, the Americas, Africa and Oceania, picked by
   region, then country, then city. Each starts on the calculation method and Asr school its mosques use, and
   keeps its own time-zone rules, summer time included. Times are calculated on the TV with
@@ -92,7 +95,7 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
 - **The radio** connects only to the station you pick:
   - `quran-radio.org`
   - `streaming.zaytonatube.com`
-  - `live.kwikmotion.com`
+  - `live.kwikmotion.com` (Qatar and the Saudi stations)
   - `jrtv-live.ercdn.net`
   - `backup.qurango.net`
 - **Screen off** asks the TV's own remote-control service, on the TV itself (`127.0.0.1`), to turn the panel

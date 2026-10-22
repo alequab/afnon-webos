@@ -192,6 +192,48 @@
   T.sectionPrayer = function () { return this.ar ? 'مواقيت الصلاة' : 'Prayer times'; };
   T.sectionReminders = function () { return this.ar ? 'التنبيهات والأذان' : 'Reminders & adhan'; };
   T.sectionDisplay = function () { return this.ar ? 'العرض واللغة' : 'Display & language'; };
+  T.sectionNews = function () { return this.ar ? 'ما الجديد' : "What's new"; };
+  /** A release's heading on the What's new page: «أفنون 0.2.0» / "Afnon 0.2.0", in the chosen digits. */
+  T.newsVersion = function (version) {
+    return (this.ar ? 'أفنون ' : 'Afnon ') + (this.eastern ? this.d(version).replace(/\./g, '٫') : version);
+  };
+  /**
+   * Settings → What's new, newest release first: each group is a version (its heading, newsVersion), then a few
+   * short lines, the same lines in the same order in both languages. Each line goes through d(), so its numbers
+   * follow the digits setting. Each release puts its group on top.
+   */
+  T.news = function () {
+    if (this.ar) return [
+      ['0.2.0',
+        '136 مدينة في 43 دولة، تُختار بالمنطقة ثم الدولة ثم المدينة',
+        'لكل مدينة مذهب العصر المعتاد فيها، ويبقى تغييره ممكنًا',
+        'مع الأرقام اللاتينية، الأرقام الكبيرة بخط الإنجليزية (Marcellus)، والعدّ التنازلي ثابت في مكانه',
+        'من السعودية: إذاعة القرآن الكريم وإذاعة نداء الإسلام',
+        'لم تعد إذاعة القرآن الكريم من القاهرة ضمن المحطات',
+        'هذه الصفحة: ما الجديد في كل إصدار'],
+      ['0.1.0',
+        'أول إصدار لتلفاز LG: الصلاة القادمة والعدّ التنازلي في المحراب، ومواقيت اليوم والقبلة',
+        'الأذان في وقته فوق أي تطبيق أو مدخل HDMI',
+        'التنبيه قبل الصلاة نصًّا وصوتًا',
+        'إذاعات القرآن الكريم، وإطفاء الشاشة أثناء الاستماع',
+        'الوضع الليلي']
+    ];
+    return [
+      ['0.2.0',
+        '136 cities in 43 countries, picked by region, then country, then city',
+        'Each city starts on its usual Asr school, which you can still change',
+        'With Latin digits in Arabic, the big numbers in the English font (Marcellus), and the countdown holds still',
+        'From Saudi Arabia: Holy Quran Radio and Nida Al-Islam Radio',
+        "Cairo's Holy Quran Radio is no longer in the list",
+        "This page: what's new in each release"],
+      ['0.1.0',
+        'The first version for LG TVs: the next prayer and countdown in the mihrab, today\'s prayers and the Qibla',
+        'The adhan at prayer time, over any app or HDMI input',
+        'Reminders before each prayer, on screen and spoken',
+        'Quran radio, and the screen off while you listen',
+        'Night mode']
+    ];
+  };
   T.preview = function () { return this.ar ? 'العصر اليوم بهذه الإعدادات' : 'Asr today with these settings'; };
   T.location = function () { return this.ar ? 'الموقع' : 'Location'; };
   T.country = function () { return this.ar ? 'الدولة' : 'Country'; };

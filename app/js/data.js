@@ -13,8 +13,8 @@
   }
 
   /**
-   * Each station's own stream, the one its website or official player uses. Two are HLS (Qatar, Jordan); the rest
-   * MP3 or AAC. Reciters are mp3quran.net's 24/7 channels, MP3 at 128 kbps.
+   * Each station's own stream, the one its website or official player uses. Qatar, Jordan and the Saudi ones are HLS;
+   * the rest MP3 or AAC. Reciters are mp3quran.net's 24/7 channels, MP3 at 128 kbps.
    */
   var STATIONS = [
     station('nablus', QURAN_AR, QURAN_EN, 'نابلس', 'Nablus', 'https://quran-radio.org:8899/;'),
@@ -22,6 +22,10 @@
     station('qatar', QURAN_AR, QURAN_EN, 'قطر', 'Qatar', 'https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8'),
     station('qatar2', QURAN_AR + ' 2', QURAN_EN + ' 2', 'قطر', 'Qatar', 'https://live.kwikmotion.com/qmcquranradio2live/quranradio2/playlist.m3u8'),
     station('jordan', QURAN_AR, QURAN_EN, 'الأردن', 'Jordan', 'https://jrtv-live.ercdn.net/jrradio/quranradio.m3u8'),
+    // The Saudi Broadcasting Authority's own audio streams, as Saudi Radio+ (radioplus.sba.sa) plays them: HLS, AAC
+    // at about 192 kbps, no token, on the Qatar stations' host.
+    station('ksa_quran', QURAN_AR, QURAN_EN, 'السعودية', 'Saudi Arabia', 'https://live.kwikmotion.com/sbrksaquranradiolive/ksaquranradio/playlist.m3u8'),
+    station('ksa_nida', 'إذاعة نداء الإسلام', 'Nida Al-Islam Radio', 'السعودية', 'Saudi Arabia', 'https://live.kwikmotion.com/sbrksanedaradiolive/ksanedaradio/playlist.m3u8'),
     reciter('mishary_alafasi', 'مشاري العفاسي', 'Mishary Alafasy'),
     reciter('abdulbasit_abdulsamad', 'عبد الباسط عبد الصمد', 'Abdul Basit Abdul Samad'),
     reciter('mohammed_siddiq_alminshawi', 'محمد صديق المنشاوي', 'Mohamed Siddiq Al-Minshawi'),
