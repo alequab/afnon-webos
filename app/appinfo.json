@@ -1,14 +1,18 @@
 {
   "id": "tv.afnon.lg",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "vendor": "Afnon",
   "type": "web",
   "main": "index.html",
   "title": "Afnon",
+  "appDescription": "Prayer times, adhan, Quran radio and live Makkah",
   "icon": "icon.png",
   "largeIcon": "icon-large.png",
+  "splashBackground": "splash.png",
   "bgColor": "#0C1B33",
   "iconColor": "#0C1B33",
   "resolution": "1920x1080",
-  "disableBackHistoryAPI": true
+  "disableBackHistoryAPI": true,
+  "handlesRelaunch": true,
+  "requiredACG": ["activity.operation", "application.launcher"]
 }

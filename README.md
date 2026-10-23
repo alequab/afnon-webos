@@ -39,8 +39,7 @@
 
 ## التثبيت
 
-يُثبَّت عبر «وضع المطوّر» من LG بحساب مطوّر مجاني، وحاسوب بنظام ويندوز على شبكة التلفاز نفسها. الخطوات والأوامر في
-قسم Install بالإنجليزية أدناه.
+يُثبَّت من متجر LG Content Store على التلفاز مباشرة. ابحث عن «Afnon» في المتجر.
 
 </div>
 
@@ -101,8 +100,7 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
 
 - Afnon is an app you open from the Home bar, not your Home screen. There are no favourites or All apps.
   Back on the arch closes Afnon.
-- The reminder over other apps is the TV's own notice (a few seconds, top corner). Apps in Developer Mode
-  can't show a popup.
+- The reminder over other apps is the TV's own toast notification (a few seconds, top corner).
 - The radio plays while Afnon is open and stops when you leave it.
 - Afnon never changes the TV's volume. On Android it turns a muted TV up for the adhan.
 - The remote's app buttons stay LG's own.
@@ -110,8 +108,15 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
 
 ## Install
 
-You need a free [LG developer account](https://webostv.developer.lge.com), and a Windows PC with
-[Node.js](https://nodejs.org) 20 or newer on the same network as the TV. The tools are PowerShell scripts.
+Search for **Afnon** in the LG Content Store on your TV and install it. On the TV, choose your city in
+Settings (gear icon) → Location. The first time you use Screen off, the TV asks once to allow the connection.
+Press Allow.
+
+### Development install
+
+To install a development build instead of the store version, you need a free
+[LG developer account](https://webostv.developer.lge.com) and a Windows PC with
+[Node.js](https://nodejs.org) 20 or newer on the same network as the TV.
 
 1. **On the TV:** from the LG Content Store, install **Developer Mode**, sign in with your LG developer
    account, turn on **Dev Mode Status** (the TV restarts), then open it again and turn on **Key Server**. Note
@@ -132,14 +137,6 @@ You need a free [LG developer account](https://webostv.developer.lge.com), and a
    ```powershell
    .\tools\pack.ps1 -Install -Launch
    ```
-5. **On the TV:** choose your city in Settings (gear icon) → Location. The first time you use Screen off, the
-   TV asks once to allow the connection. Press Allow.
-
-Keep Developer Mode's session alive: open the Developer Mode app and press **Extend** now and then (a session
-lasts about 1,000 hours). If it runs out, the TV removes apps installed this way, and you install again with
-step 4.
-
-To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your settings stay on the TV.
 
 ## Privacy and network
 
@@ -153,8 +150,7 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
 - **The live video** asks `aloula.faulio.com` (Aloula's player) for a fresh stream address each time you start
   it, then plays from `live.kwikmotion.com`. Nothing is stored.
 - **Screen off** asks the TV's own remote-control service, on the TV itself (`127.0.0.1`), to turn the panel
-  off. Apps in Developer Mode aren't allowed to do it directly. The key the TV gives for that stays in Afnon's
-  storage on the TV.
+  off. The key the TV gives for that stays in Afnon's storage on the TV.
 - **No analytics, crash reports or accounts.**
 
 ## Known issues
@@ -201,6 +197,6 @@ The service logs to `/tmp/afnon-lg.log` on the TV (`ares-novacom --device lg --r
 - Fonts: [Amiri](https://github.com/aliftype/amiri), [Alexandria](https://fonts.google.com/specimen/Alexandria)
   and [Marcellus](https://fonts.google.com/specimen/Marcellus), under the SIL Open Font Licence.
 - Screen-off pairing manifest from [lgtv2](https://github.com/hobbyquaker/lgtv2) (MIT).
-- Built with [Claude Code](https://claude.com/claude-code) on the real TV.
+- Built with [Claude Code](https://claude.com/claude-code).
 
 See [THIRD_PARTY.md](THIRD_PARTY.md). Released under the [MIT licence](LICENSE).
