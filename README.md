@@ -14,8 +14,7 @@
 > [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). التصميم والمزايا والمدن
 > والنصوص كلها من أفنون الذي أنشأه egyjs، وهذا المستودع ينقلها إلى تلفازات LG بالرخصة نفسها (MIT). شكرًا لـ egyjs.
 
-جُرّب على تلفاز LG 65UN7240PVG مقاس ٦٥ بوصة (4K، طراز 2020) بنظام webOS TV 5.0 (الإصدار البرمجي 5.6.2، البرنامج الثابت
-04.64.00) وذاكرة نحو ١٫١ غيغابايت.
+يعمل على تلفازات LG بنظام webOS 5 فأحدث.
 
 ## المزايا
 
@@ -61,8 +60,7 @@ Arabic (right to left) first, with English.
 This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 136 cities and
 the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
-Tested on an LG 65UN7240PVG, a 65-inch 4K TV from 2020, with webOS TV 5.0 (SDK version 5.6.2, firmware
-04.64.00) and about 1.1 GB of RAM.
+Works on LG TVs with webOS 5 or newer.
 
 ## Features
 
@@ -162,8 +160,8 @@ To update, pull the new version and run `.\tools\pack.ps1 -Install` again. Your 
 ## Known issues
 
 - **Jordan:** the Quran radio station from Jordan plays nothing on webOS 5; the other stations play.
-- **The spoken reminder over another app** plays alongside it (heard over YouTube on the tested TV). If a
-  model doesn't allow that, the on-screen notice still shows.
+- **The spoken reminder over another app** plays alongside it. If a model doesn't allow that, the on-screen
+  notice still shows.
 - **TVs set to a fixed time offset:** some models only allow one ("Custom" time zone), which doesn't follow
   summer and winter time. Afnon uses your city's own rules, so its times stay right, but the TV's own clock may
   be an hour out after the change.
