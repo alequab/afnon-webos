@@ -30,6 +30,9 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
   - `ares-launch … -p live=makkah|madinah|off` (with `quality=<height>`, `full=1`) tries it.
 
 ### Changed
+- **Minutes added to each time:** the prayer code and the service take `adjust` (six minutes, -30 to 30) with
+  the settings, as Islamic Launcher for LG TV's Settings sets it; the reminders and the adhan follow it. A page
+  that doesn't send it (this app) keeps the saved one.
 - **The service opens the app that names itself for the call to prayer:** Islamic Launcher for LG TV
   (tv.afnon.launcher) does, so on a TV with the launcher the call and its adhan voice are the launcher's. Without
   it, this app opens as before. It also passes which app was on screen (`from`), when the TV lets it see that,

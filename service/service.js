@@ -96,11 +96,21 @@ function utc(ms) {
 
 // ---------------------------------------------------------------- settings and events
 
-/** The page's settings, with Android's defaults for anything missing. */
-function settings(s) {
+/** Six whole minutes, -30 to 30, or null. */
+function adjustOf(a) {
+    if (!Array.isArray(a) || a.length !== 6) return null;
+    return a.map(x => Math.max(-30, Math.min(30, Math.round(+x) || 0)));
+}
+
+/**
+ * The page's settings, with Android's defaults for anything missing. The minutes each time is adjusted by come
+ * from Islamic Launcher for LG TV's Settings; a page without them (the Afnon app) keeps the saved ones (prev).
+ */
+function settings(s, prev) {
     s = s || {};
     const bells = Array.isArray(s.bells) && s.bells.length === 6 ? s.bells : [1, 0, 1, 1, 1, 1];
     return {
+        adjust: adjustOf(s.adjust) || adjustOf(prev && prev.adjust) || [0, 0, 0, 0, 0, 0],
         city: s.city || 'cairo', method: s.method || null, madhab: s.madhab === 'hanafi' ? 'hanafi' : 'shafi',
         bells: bells.map(b => (b ? 1 : 0)), adhan: s.adhan !== false, remind: s.remind == null ? 15 : +s.remind,
         remindVoice: s.remindVoice !== false, announce: s.announce !== false,
@@ -307,7 +317,7 @@ function appPatch(payload, patch) {
 service.register('configure', async msg => {
     const release = hold('afnon-configure');
     try {
-        const s = settings(msg.payload.settings);
+        const s = settings(msg.payload.settings, readState().settings);
         const patch = appPatch(msg.payload, { settings: s });
         if (typeof msg.payload.visible === 'boolean') { patch.visible = msg.payload.visible; patch.visibleAt = Date.now(); }
         writeState(patch);
