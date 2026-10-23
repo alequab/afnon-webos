@@ -14,7 +14,8 @@
 > [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). التصميم والمزايا والمدن
 > والنصوص كلها من أفنون الذي أنشأه egyjs، وهذا المستودع ينقلها إلى تلفازات LG بالرخصة نفسها (MIT). شكرًا لـ egyjs.
 
-جُرّب على تلفاز LG 65UN7240PVG (2020) بنظام webOS TV Lite 5.6.2 وذاكرة نحو ١٫١ غيغابايت.
+جُرّب على تلفاز LG 65UN7240PVG مقاس ٦٥ بوصة (4K، طراز 2020) بنظام webOS TV 5.0 (الإصدار البرمجي 5.6.2، البرنامج الثابت
+04.64.00) وذاكرة نحو ١٫١ غيغابايت.
 
 ## المزايا
 
@@ -60,7 +61,8 @@ Arabic (right to left) first, with English.
 This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 136 cities and
 the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
-Tested on an LG 65UN7240PVG (2020) with webOS TV Lite 5.6.2 and about 1.1 GB of RAM.
+Tested on an LG 65UN7240PVG, a 65-inch 4K TV from 2020, with webOS TV 5.0 (SDK version 5.6.2, firmware
+04.64.00) and about 1.1 GB of RAM.
 
 ## Features
 
