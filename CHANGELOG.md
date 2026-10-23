@@ -30,6 +30,16 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
   - `ares-launch … -p live=makkah|madinah|off` (with `quality=<height>`, `full=1`) tries it.
 
 ### Changed
+- **Two more adhan voices,** 16 in all: «المسجد النبوي» (Madinah, Al-Masjid an-Nabawi) and «راغب مصطفى غلوش», the
+  recordings meypod/al-azan uses. Like the others they aren't in the repo; `tools/fetch-adhans.ps1` downloads them.
+- **Isha in Ramadan for the Saudi cities** (Umm al-Qura): 2 hours after Maghrib instead of 1½, from the first
+  night of Ramadan to the last, as Saudi Arabia's calendar and [meypod/al-azan](https://github.com/meypod/al-azan)
+  have it. The adhan comes at that time too.
+- **Fajr and Isha in summer above 48°** (London, Birmingham, Manchester, Paris, Berlin, Frankfurt, Amsterdam,
+  Brussels, Vienna): a seventh of the night from Maghrib and before sunrise, as al-azan has it, where these
+  nights never get dark enough for the angles (London, 21 June: Isha 22:25 and Fajr 03:40, both 01:02 before).
+  Every city now matches al-azan's times all year, except the Singapore method's, which round to the nearest
+  minute as the Android app does.
 - **Location is picked by region first** (Arab world, Asia, Europe, Americas, Africa, Oceania), then country (A
   to Z), then city, so no list is longer than 16. Back goes one step back.
 - **Picking a city also sets its usual Asr school:** Hanafi for Pakistan, Bangladesh and most Indian cities,

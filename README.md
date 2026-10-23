@@ -22,7 +22,7 @@
   من القرآن الكريم.
 - **مواقيت اليوم والقبلة:** جرس أذان لكل صلاة، واتجاه القبلة من مدينتك، وإعداد لمرة واحدة لاتجاه التلفاز، فتعرف
   القبلة من مكان جلوسك.
-- **الأذان في وقته:** يفتح أفنون وحده فوق أي تطبيق أو مدخل HDMI، ويرفع الأذان ثم يعود. ١٤ صوتًا، وصوت خاص للفجر.
+- **الأذان في وقته:** يفتح أفنون وحده فوق أي تطبيق أو مدخل HDMI، ويرفع الأذان ثم يعود. ١٦ صوتًا منها أذان المسجد النبوي، وصوت خاص للفجر.
 - **التنبيه قبل الصلاة:** قبلها بـ ٥ أو ١٠ أو ١٥ أو ٢٠ أو ٣٠ دقيقة، إشعارًا على الشاشة مع تذكير صوتي اختياري
   («اقترب موعد صلاة العصر»)، و«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف.
 - **الجمعة ورمضان:** الجمعة مكان الظهر مع تذكير بسورة الكهف، والإفطار والسحور في رمضان.
@@ -68,7 +68,7 @@ Works on LG TVs with webOS 5 or newer.
 - **Today's prayers and the Qibla.** An adhan on/off bell for each prayer, the Qibla direction from your city,
   and a one-time setting for which way the TV faces, so the screen can say where the Qibla is from where you sit.
 - **The adhan at prayer time.** Afnon opens by itself over whatever is on (an app or an HDMI input), plays the
-  adhan, then goes back. 14 voices plus a separate Fajr voice. It closes when the adhan ends, or 1, 5 or 10
+  adhan, then goes back. 16 voices, Masjid an-Nabawi's among them, plus a separate Fajr voice. It closes when the adhan ends, or 1, 5 or 10
   minutes after it appears; Back stops it at any time.
 - **Reminders.** 5, 10, 15, 20 or 30 minutes before each prayer, a notice on the TV, with an optional spoken
   reminder («اقترب موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
@@ -130,7 +130,7 @@ To install a development build instead of the store version, you need a free
 3. **Afnon's tools,** from this folder:
    ```powershell
    npm ci --prefix tools/npm             # adhan-js, the prayer-time library
-   .\tools\fetch-adhans.ps1              # the 14 adhan recordings (optional; without them the adhan is silent)
+   .\tools\fetch-adhans.ps1              # the 16 adhan recordings (optional; without them the adhan is silent)
    .\tools\make-voice.ps1                # the spoken reminders, with Windows' Arabic voice (optional)
    ```
 4. **Build and install:**

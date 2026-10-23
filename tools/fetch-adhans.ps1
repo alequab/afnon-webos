@@ -1,5 +1,6 @@
-# Downloads the adhan recordings into app/sounds/adhan/, the same 14 the Android app uses. They come from
-# https://github.com/abodehq/Athan-MP3, which has no licence, so they are not committed to this repo.
+# Downloads the adhan recordings into app/sounds/adhan/: the same 14 the Android app uses, from
+# https://github.com/abodehq/Athan-MP3, and two that meypod/al-azan uses, from https://github.com/meypod/audio_files.
+# Neither states a licence, so they are not committed to this repo.
 # Without them Afnon still works; the call screen just stays silent.
 $dest = Join-Path (Split-Path $PSScriptRoot -Parent) 'app\sounds\adhan'
 $base = 'https://raw.githubusercontent.com/abodehq/Athan-MP3/master/Sounds/'
@@ -27,5 +28,14 @@ foreach ($item in $list) {
     if (Test-Path $out) { continue }
     "  $id"
     Invoke-WebRequest -UseBasicParsing ($base + [uri]::EscapeDataString($name)) -OutFile $out
+}
+# Two more from meypod/al-azan's audio files (no licence stated there either).
+$base2 = 'https://raw.githubusercontent.com/meypod/audio_files/main/adhan/'
+foreach ($item in @('nabawi|masjid_an_nabawi.mp3', 'ghalwash|ragheb_mustafa_ghalwash.mp3')) {
+    $id, $name = $item -split '\|', 2
+    $out = Join-Path $dest "$id.mp3"
+    if (Test-Path $out) { continue }
+    "  $id"
+    Invoke-WebRequest -UseBasicParsing ($base2 + $name) -OutFile $out
 }
 "Adhan recordings are in $dest"
