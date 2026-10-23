@@ -264,9 +264,13 @@ async function act(ev, s, opts) {
     const page = opts.test ? null : pageState();
     const pageInFront = page !== null, pageHome = page === 'home';
     if (ev.kind === 'call') {
+        // What is on screen now (an HDMI input, YouTube…), so the call can go back to it when it closes. Allowed
+        // only where the launcher's boot script grants it; otherwise the page just steps back.
+        const app = callApp(), f = await call('luna://com.webos.applicationManager/getForegroundAppInfo', {}, 3000);
+        const from = f.appId && f.appId !== app ? f.appId : '';
         const r = await call('luna://com.webos.applicationManager/launch',
-            { id: APP, params: { call: ev.prayer, time: ev.time, test: opts.test ? 1 : 0 } });
-        log('call p' + ev.prayer + ' -> launch ' + JSON.stringify(r));
+            { id: app, params: { call: ev.prayer, time: ev.time, test: opts.test ? 1 : 0, from } });
+        log('call p' + ev.prayer + ' over ' + (from || f.errorText || 'nothing') + ' -> launch ' + JSON.stringify(r));
         return;
     }
     if (ev.kind === 'reminder') {
@@ -288,12 +292,23 @@ async function act(ev, s, opts) {
 
 // ---------------------------------------------------------------- methods
 
-/** From the page whenever it opens or a setting changes: { settings, visible }. Schedules the next event. */
+/**
+ * The app that opens for the call: the one whose page last named itself (Islamic Launcher for LG TV,
+ * tv.afnon.launcher, does, so its own adhan voice and settings are used), or this one's own Afnon app.
+ */
+function callApp() { return readState().app || APP; }
+/** { app } from a page's message, if it names one. */
+function appPatch(payload, patch) {
+    if (typeof payload.app === 'string' && /^[a-z0-9.]+$/i.test(payload.app)) patch.app = payload.app;
+    return patch;
+}
+
+/** From the page whenever it opens or a setting changes: { settings, visible, app }. Schedules the next event. */
 service.register('configure', async msg => {
     const release = hold('afnon-configure');
     try {
         const s = settings(msg.payload.settings);
-        const patch = { settings: s };
+        const patch = appPatch(msg.payload, { settings: s });
         if (typeof msg.payload.visible === 'boolean') { patch.visible = msg.payload.visible; patch.visibleAt = Date.now(); }
         writeState(patch);
         const ev = await scheduleNext(s, Date.now());
@@ -313,7 +328,7 @@ service.register('visible', msg => {
     const before = readState();
     const v = !!msg.payload.visible, home = !!msg.payload.home;
     if (before.visible !== v || !!before.home !== home) log('page ' + (v ? 'in front' + (home ? ' on Home' : '') : 'behind or closed'));
-    writeState({ visible: v, home, visibleAt: Date.now() });
+    writeState(appPatch(msg.payload, { visible: v, home, visibleAt: Date.now() }));
     msg.respond({ returnValue: true });
 });
 

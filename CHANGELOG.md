@@ -30,6 +30,10 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
   - `ares-launch … -p live=makkah|madinah|off` (with `quality=<height>`, `full=1`) tries it.
 
 ### Changed
+- **The service opens the app that names itself for the call to prayer:** Islamic Launcher for LG TV
+  (tv.afnon.launcher) does, so on a TV with the launcher the call and its adhan voice are the launcher's. Without
+  it, this app opens as before. It also passes which app was on screen (`from`), when the TV lets it see that,
+  so the launcher can go back to it after the call.
 - **Two more adhan voices,** 16 in all: «المسجد النبوي» (Madinah, Al-Masjid an-Nabawi) and «راغب مصطفى غلوش», the
   recordings meypod/al-azan uses. Like the others they aren't in the repo; `tools/fetch-adhans.ps1` downloads them.
 - **Isha in Ramadan for the Saudi cities** (Umm al-Qura): 2 hours after Maghrib instead of 1½, from the first
