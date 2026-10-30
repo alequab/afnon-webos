@@ -14,5 +14,5 @@
   "resolution": "1920x1080",
   "disableBackHistoryAPI": true,
   "handlesRelaunch": true,
-  "requiredACG": ["activity.operation", "application.launcher"]
+  "requiredACG": ["activity.operation", "application.launcher", "time.query"]
 }

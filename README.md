@@ -24,22 +24,29 @@
   القبلة من مكان جلوسك.
 - **الأذان في وقته:** يفتح أفنون وحده فوق أي تطبيق أو مدخل HDMI، ويرفع الأذان ثم يعود. ١٦ صوتًا منها أذان المسجد النبوي، وصوت خاص للفجر.
 - **التنبيه قبل الصلاة:** قبلها بـ ٥ أو ١٠ أو ١٥ أو ٢٠ أو ٣٠ دقيقة، إشعارًا على الشاشة مع تذكير صوتي اختياري
-  («اقترب موعد صلاة العصر»)، و«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف.
-- **الجمعة ورمضان:** الجمعة مكان الظهر مع تذكير بسورة الكهف، والإفطار والسحور في رمضان.
+  («حان الآن موعد صلاة العصر»)، و«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف.
+- **تنبيه قبل خروج الوقت:** «أوشك وقت صلاة … على الانتهاء» قبل نهاية وقت الصلاة الحالية.
+- **تعديل المواقيت:** تقديم كل وقت أو تأخيره بالدقائق، حتى ٣٠ دقيقة.
+- **الجمعة ورمضان:** الجمعة مكان الظهر حتى مغربها مع تذكير بسورة الكهف، والإفطار والسحور في رمضان. التاريخ الهجري
+  ويومه يتغيّران عند المغرب.
 - **إذاعات القرآن الكريم:** من نابلس وقطر (قناتان) والأردن، وشباب إف إم، وإذاعة القرآن الكريم وإذاعة نداء الإسلام من
   هيئة الإذاعة والتلفزيون السعودية، وعشرة قرّاء على مدار الساعة من mp3quran.net.
 - **بث مباشر من مكة المكرمة والمدينة المنورة:** زر «مباشر» في الرئيسية يعرض قناتي القرآن الكريم والسنة النبوية من
   منصة الأولى، مع ملء الشاشة واختيار الجودة (360p و480p و1080p). يعمل ما دمت في الرئيسية.
-- **إطفاء الشاشة أثناء الاستماع،** وشاشة خافتة بالساعة والصلاة القادمة تتحرك بين حين وآخر.
+- **شاشة سوداء أثناء الاستماع،** وشاشة خافتة بالساعة والصلاة القادمة تتحرك بين حين وآخر.
 - **الوضع الليلي:** ألوان أهدأ وأخفت للمشاهدة ليلًا.
-- **١٣٦ مدينة في ٤٣ دولة** تُختار بالمنطقة ثم الدولة ثم المدينة، ولكل مدينة طريقة الحساب ومذهب العصر المعتادان فيها
-  وقواعد توقيتها الصيفي. تُحسب المواقيت على التلفاز نفسه، وتطابق تطبيق أندرويد تمامًا.
+- **١٩٢ مدينة في ٤٣ دولة** تُختار بالمنطقة ثم الدولة ثم المدينة، ولكل مدينة طريقة الحساب ومذهب العصر المعتادان فيها
+  وقواعد توقيتها الصيفي. تُحسب المواقيت على التلفاز نفسه.
 - **ما الجديد** في الإعدادات: تغييرات كل إصدار.
-- **لا حسابات ولا إعلانات ولا تتبّع.** الإذاعة والبث المباشر وحدهما يستخدمان الإنترنت.
+- **لا حسابات ولا إعلانات ولا تتبّع.** الإذاعة والبث المباشر ومعرفة الإصدار الأحدث في المتجر (مرة في اليوم) وحدها
+  تستخدم الإنترنت.
 
 ## التثبيت
 
 يُثبَّت من متجر LG Content Store على التلفاز مباشرة. ابحث عن «Afnon» في المتجر.
+
+**التحديث:** يحدّث متجر LG التطبيق بنفسه إذا كان التحديث التلقائي مفعّلًا في التلفاز. وحين يصل إصدار أحدث إلى المتجر
+تظهر نقطة ذهبية على زر الإعدادات، وفي «ما الجديد» سطر يفتح متجر LG بزر OK لتحديث أفنون منه.
 
 </div>
 
@@ -56,8 +63,8 @@ Arabic (right to left) first, with English.
 > features, the cities and the texts all come from egyjs's Afnon. This repository brings them to LG TVs,
 > under the same MIT licence. Thank you, egyjs.
 
-This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the same 136 cities and
-the same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
+This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the cities and the
+same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
 Works on LG TVs with webOS 5 or newer.
 
@@ -71,9 +78,12 @@ Works on LG TVs with webOS 5 or newer.
   adhan, then goes back. 16 voices, Masjid an-Nabawi's among them, plus a separate Fajr voice. It closes when the adhan ends, or 1, 5 or 10
   minutes after it appears; Back stops it at any time.
 - **Reminders.** 5, 10, 15, 20 or 30 minutes before each prayer, a notice on the TV, with an optional spoken
-  reminder («اقترب موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
-  is off, Afnon can say «حان الآن موعد صلاة …» instead.
-- **Friday and Ramadan.** Jumu'ah in place of Dhuhr with a Surat al-Kahf reminder; iftar and suhoor in Ramadan.
+  reminder («حان الآن موعد صلاة العصر») that plays over whatever is on without stopping it. When a prayer's adhan
+  is off, Afnon can say «حان الآن موعد صلاة …» at the time instead.
+- **Before the time ends.** «أوشك وقت صلاة … على الانتهاء», 5 to 30 minutes before the current prayer's time ends.
+- **Adjust the times.** Each of the six times can be moved by whole minutes, up to 30 earlier or later.
+- **Friday and Ramadan.** Jumu'ah in place of Dhuhr until Friday's Maghrib, with a Surat al-Kahf reminder; iftar
+  and suhoor in Ramadan. The Hijri date and its weekday turn at Maghrib.
 - **Quran radio.** Broadcast Quran radio from Nablus, Qatar (two) and Jordan, Shabab FM Quran, the Saudi
   Broadcasting Authority's Holy Quran Radio and Nida Al-Islam Radio, and ten reciters' 24/7 channels from
   mp3quran.net. Each plays the station's own public stream.
@@ -81,18 +91,21 @@ Works on LG TVs with webOS 5 or newer.
   Authority's Quran and Sunnah channels (on Aloula) in a panel where the prayer strip was; the arch, clock and
   countdown stay. Full screen, and a quality list (360p, 480p, 1080p) with the data each uses per hour; 480p
   at first. It plays only while you're on Home.
-- **Screen off while listening.** The panel goes dark while the radio keeps playing; any button brings it
+- **Screen off while listening.** The screen goes black while the radio keeps playing; any button brings it
   back. After a while without a key press, a dim screen with the clock and next prayer comes first, moving now
   and then so nothing burns in.
 - **Night mode.** The button next to Settings switches every screen to calmer, dimmer colours.
 - **Arabic with Western digits** draws the big numbers (clock, countdown, times) in the English font, Marcellus.
 - **What's new** in Settings lists each release's changes.
-- **136 cities in 43 countries** across the Arab world, Asia, Europe, the Americas, Africa and Oceania, picked by
+- **Updates.** The LG Content Store updates Afnon (with the TV's automatic updates on). When the store has a newer
+  version, a gold dot shows on Settings, and What's new opens the LG Content Store with OK.
+- **192 cities in 43 countries** across the Arab world, Asia, Europe, the Americas, Africa and Oceania, picked by
   region, then country, then city. Each starts on the calculation method and Asr school its mosques use, and
   keeps its own time-zone rules, summer time included. Times are calculated on the TV with
-  [adhan-js](https://github.com/batoulapps/adhan-js); they match the Android app's adhan-java exactly (20,160
-  times compared, none differ).
-- **No accounts, ads or tracking.** Only the radio and the live video use the internet.
+  [adhan-js](https://github.com/batoulapps/adhan-js), with [meypod/al-azan](https://github.com/meypod/al-azan)'s
+  rules for Isha in Ramadan and for summer nights above 48°.
+- **No accounts, ads or tracking.** Only the radio, the live video and the daily look at the store's version use
+  the internet.
 
 ### How it differs from the Android version
 
@@ -102,6 +115,7 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
   Back on the arch closes Afnon.
 - The reminder over other apps is the TV's own toast notification (a few seconds, top corner).
 - The radio plays while Afnon is open and stops when you leave it.
+- Screen off is a black screen; webOS doesn't let a store app turn the TV's panel off.
 - Afnon never changes the TV's volume. On Android it turns a muted TV up for the adhan.
 - The remote's app buttons stay LG's own.
 - There's no Cairo Quran radio station.
@@ -109,8 +123,10 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
 ## Install
 
 Search for **Afnon** in the LG Content Store on your TV and install it. On the TV, choose your city in
-Settings (gear icon) → Location. The first time you use Screen off, the TV asks once to allow the connection.
-Press Allow.
+Settings (gear icon) → Location.
+
+Each [GitHub release](https://github.com/alequab/afnon-webos/releases) also has the `.ipk`, with the adhan and
+spoken lines, for a development install (below): `ares-install --device lg tv.afnon.lg_<version>_all.ipk`.
 
 ### Development install
 
@@ -149,8 +165,9 @@ To install a development build instead of the store version, you need a free
   - `backup.qurango.net`
 - **The live video** asks `aloula.faulio.com` (Aloula's player) for a fresh stream address each time you start
   it, then plays from `live.kwikmotion.com`. Nothing is stored.
-- **Screen off** asks the TV's own remote-control service, on the TV itself (`127.0.0.1`), to turn the panel
-  off. The key the TV gives for that stays in Afnon's storage on the TV.
+- **Updates:** once a day Afnon reads `store.json` from this repository
+  (`raw.githubusercontent.com/alequab/afnon-webos/main/store.json`), the version the LG Content Store has. It sends
+  nothing but the request itself.
 - **No analytics, crash reports or accounts.**
 
 ## Known issues
@@ -174,13 +191,19 @@ on the TV's Node 8. Everything aims to stay fast on a weak TV:
 
 | Folder | What's in it |
 |---|---|
-| `app/` | The page: `index.html`, `css/afnon.css`, `js/app.js` (all screens), `js/data.js` (stations, voices), `js/ssap.js` (screen off), fonts and icons |
+| `app/` | The page: `index.html`, `css/afnon.css`, `js/app.js` (all screens), `js/data.js` (stations, voices), fonts and icons |
 | `service/` | The background service: schedules each next reminder and adhan with the TV's Activity Manager, shows the notices, plays the spoken lines |
 | `shared/` | `prayer.js` (cities, methods, times) and `text.js` (every string, Arabic and English), used by both |
-| `tools/` | `pack.ps1`, `sync.ps1` (copies `shared/` and adhan-js into `app/` and `service/`), `fetch-adhans.ps1`, `make-voice.ps1`, `serve.js` (desktop preview on http://localhost:8719), `compare/` (checks the times against the Android app's adhan-java) |
+| `tools/` | `pack.ps1`, `release.ps1` (the release and store package, with the sounds), `sync.ps1` (copies `shared/` and adhan-js into `app/` and `service/`), `fetch-adhans.ps1`, `make-voice.ps1`, `serve.js` (desktop preview on http://localhost:8719), `compare/` (checks the times against the Android app's adhan-java) |
+| `store.json` | The version the LG Content Store has; Afnon compares its own with it once a day |
+
+**Releasing.** Bump `app/appinfo.json`, date the CHANGELOG, run `tools\release.ps1`, tag `vX.Y.Z`, attach
+`out\release\*.ipk` to the GitHub release, and upload the same `.ipk` to LG Seller Lounge. Once LG has published
+it, set `store.json` to the new version and push: TVs then show the update notice.
 
 **Test hooks.** Run `ares-launch --device lg tv.afnon.lg -p test=<kind>` to try something without waiting:
-- Kinds: `call`, `reminder`, `announce`, `voice`, `friday`, `ramadan`, `radio`, `screenoff`, `dream`, `mem`
+- Kinds: `call`, `reminder`, `announce`, `voice`, `friday`, `ramadan`, `radio`, `screenoff`, `dream`, `update`, `mem`
+- `-p version=<x.y.z>` with `test=update` pretends the store has that version.
 - `-p seconds=<n>` delays it.
 - `-p station=<id>` picks a radio station.
 - `-p live=makkah|madinah|off` plays the live video (`-p quality=<height>`, `-p full=1`).
@@ -192,11 +215,12 @@ The service logs to `/tmp/afnon-lg.log` on the TV (`ares-novacom --device lg --r
 - [Afnon](https://github.com/egyjs/afnon-android-tv-launcher) by egyjs: the design, the cities, the strings and
   the Android app this follows.
 - Prayer times: [adhan-js](https://github.com/batoulapps/adhan-js) (MIT) by Batoul Apps.
-- Adhan recordings: [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3). They aren't in the source, and
-  `fetch-adhans.ps1` downloads them. If you hold the rights to a recording and want it removed, open an issue.
+- Adhan recordings: [abodehq/Athan-MP3](https://github.com/abodehq/Athan-MP3) and
+  [meypod/audio_files](https://github.com/meypod/audio_files). They aren't in the source (`fetch-adhans.ps1`
+  downloads them) but are in the release package. If you hold the rights to a recording and want it removed, open
+  an issue.
 - Fonts: [Amiri](https://github.com/aliftype/amiri), [Alexandria](https://fonts.google.com/specimen/Alexandria)
   and [Marcellus](https://fonts.google.com/specimen/Marcellus), under the SIL Open Font Licence.
-- Screen-off pairing manifest from [lgtv2](https://github.com/hobbyquaker/lgtv2) (MIT).
 - Built with [Claude Code](https://claude.com/claude-code).
 
 See [THIRD_PARTY.md](THIRD_PARTY.md). Released under the [MIT licence](LICENSE).

@@ -2,10 +2,12 @@
 /*
  * Afnon LG service (tv.afnon.lg.service). The page can't run while it is closed, so this schedules the one next
  * event with the TV's Activity Manager, and each event schedules the one after it:
- *   reminder  N minutes before a prayer: a system toast, and the spoken "اقترب موعد صلاة …" clip;
+ *   reminder  N minutes before a prayer: a system toast, and the spoken "حان الآن موعد صلاة …" clip
+ *             (BEFORE_AS_NOW; "اقترب موعد صلاة …" before);
  *   call      at the time, when that prayer's adhan is on: opens Afnon on the call screen (the only thing that
  *             ever brings Afnon to the front);
- *   announce  at the time, when its adhan is off and announcing is on: a toast and "حان الآن موعد صلاة …".
+ *   announce  at the time, when its adhan is off and announcing is on: a toast and "حان الآن موعد صلاة …";
+ *   end       before the current prayer's time ends: "أوشك وقت صلاة … على الانتهاء".
  * The settings come from the page (configure) and travel in the activity's own params, so the chain carries on
  * without the page. Node 8: CommonJS, async/await, no newer syntax. Log: /tmp/afnon-lg.log.
  */
@@ -24,7 +26,8 @@ const CHAIN = 'afnon-next', TEST = 'afnon-test';
 /** An event this late (the TV was off or asleep and Quick Start+ resumed it) is skipped. */
 const LATE_MS = 180000;
 /** How long the page's "I'm in front" stays believable without being repeated (it repeats once a minute). */
-const PAGE_FRESH_MS = 180000;
+// (90 s, was 3 min: a page closed by an install or by the TV kept the reminders quiet for up to 3 min.)
+const PAGE_FRESH_MS = 90000;
 /** File names by prayer index; Sunrise has none. On Friday, Dhuhr is "jumuah" (Announce.java). */
 const CLIPS = ['fajr', null, 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -103,15 +106,15 @@ function adjustOf(a) {
 }
 
 /**
- * The page's settings, with Android's defaults for anything missing. The minutes each time is adjusted by come
- * from Islamic Launcher for LG TV's Settings; a page without them (the Afnon app) keeps the saved ones (prev).
+ * The page's settings, with Android's defaults for anything missing. A message without the minutes each time is
+ * adjusted by, or without endRemind (a page from before 1.0.0), keeps the saved ones (prev).
  */
 function settings(s, prev) {
     s = s || {};
     const bells = Array.isArray(s.bells) && s.bells.length === 6 ? s.bells : [1, 0, 1, 1, 1, 1];
     return {
         adjust: adjustOf(s.adjust) || adjustOf(prev && prev.adjust) || [0, 0, 0, 0, 0, 0],
-        // Minutes before a prayer's time ends for «أوشك وقت صلاة … على الانتهاء» (the launcher's setting; 0 off).
+        // Minutes before a prayer's time ends for «أوشك وقت صلاة … على الانتهاء» (Settings → Reminders; 0 off).
         endRemind: s.endRemind != null ? Math.max(0, +s.endRemind || 0)
             : prev && prev.endRemind != null ? prev.endRemind : 0,
         city: s.city || 'cairo', method: s.method || null, madhab: s.madhab === 'hanafi' ? 'hanafi' : 'shafi',
@@ -272,10 +275,18 @@ function voice(clip, opts) {
     });
 }
 
+// The Jumu'ah lines are said with Dhuhr's recordings until Jumu'ah has its own (Lutfi Khamis recorded Dhuhr's);
+// true again once before_jumuah / now_jumuah are recorded in the same voice. The page has the same switch.
+const JUMUAH_CLIPS = false;
+// The reminder before the prayer says «حان الآن موعد صلاة …» (Lutfi Khamis), the maintainer's choice over «اقترب
+// موعد صلاة …» (before_*, the old computer voice). false plays before_* again.
+const BEFORE_AS_NOW = true;
+
 function clipName(kind, ev, friday) {
     const base = CLIPS[ev.prayer];
     if (!base) return null;
-    return kind + (friday ? 'jumuah' : base);
+    if (kind === 'before_' && BEFORE_AS_NOW) kind = 'now_';
+    return kind + (friday && JUMUAH_CLIPS ? 'jumuah' : base);
 }
 
 async function act(ev, s, opts) {
@@ -288,13 +299,10 @@ async function act(ev, s, opts) {
     const page = opts.test ? null : pageState();
     const pageInFront = page !== null, pageHome = page === 'home';
     if (ev.kind === 'call') {
-        // What is on screen now (an HDMI input, YouTube…), so the call can go back to it when it closes. Allowed
-        // only where the launcher's boot script grants it; otherwise the page just steps back.
-        const app = callApp(), f = await call('luna://com.webos.applicationManager/getForegroundAppInfo', {}, 3000);
-        const from = f.appId && f.appId !== app ? f.appId : '';
+        // Afnon over whatever is on; when the call closes the page steps back to it (webOS's own back).
         const r = await call('luna://com.webos.applicationManager/launch',
-            { id: app, params: { call: ev.prayer, time: ev.time, test: opts.test ? 1 : 0, from } });
-        log('call p' + ev.prayer + ' over ' + (from || f.errorText || 'nothing') + ' -> launch ' + JSON.stringify(r));
+            { id: APP, params: { call: ev.prayer, time: ev.time, test: opts.test ? 1 : 0 } });
+        log('call p' + ev.prayer + ' -> launch ' + JSON.stringify(r));
         return;
     }
     if (ev.kind === 'reminder') {
@@ -312,10 +320,9 @@ async function act(ev, s, opts) {
         return;
     }
     if (ev.kind === 'end') {
-        // «أوشك وقت صلاة … على الانتهاء». In front, the page says it itself. Jumu'ah has no recording yet: silent.
-        // (ev.time is the end; prayerName looks at the prayer's own day, the same Friday for Dhuhr.)
+        // «أوشك وقت صلاة … على الانتهاء». In front, the page says it itself. Jumu'ah has no recording of its own:
+        // Dhuhr's is said, since its time ends at Asr too.
         if (pageInFront) log('end p' + ev.prayer + ': Afnon is in front, it says it');
-        else if (p.friday) log('end p' + ev.prayer + ': no Jumu\'ah recording');
         else await voice(clipName('end_', ev, false), opts);
         return;
     }
@@ -324,23 +331,12 @@ async function act(ev, s, opts) {
 
 // ---------------------------------------------------------------- methods
 
-/**
- * The app that opens for the call: the one whose page last named itself (Islamic Launcher for LG TV,
- * tv.afnon.launcher, does, so its own adhan voice and settings are used), or this one's own Afnon app.
- */
-function callApp() { return readState().app || APP; }
-/** { app } from a page's message, if it names one. */
-function appPatch(payload, patch) {
-    if (typeof payload.app === 'string' && /^[a-z0-9.]+$/i.test(payload.app)) patch.app = payload.app;
-    return patch;
-}
-
-/** From the page whenever it opens or a setting changes: { settings, visible, app }. Schedules the next event. */
+/** From the page whenever it opens or a setting changes: { settings, visible }. Schedules the next event. */
 service.register('configure', async msg => {
     const release = hold('afnon-configure');
     try {
         const s = settings(msg.payload.settings, readState().settings);
-        const patch = appPatch(msg.payload, { settings: s });
+        const patch = { settings: s };
         if (typeof msg.payload.visible === 'boolean') { patch.visible = msg.payload.visible; patch.visibleAt = Date.now(); }
         writeState(patch);
         const ev = await scheduleNext(s, Date.now());
@@ -360,7 +356,7 @@ service.register('visible', msg => {
     const before = readState();
     const v = !!msg.payload.visible, home = !!msg.payload.home;
     if (before.visible !== v || !!before.home !== home) log('page ' + (v ? 'in front' + (home ? ' on Home' : '') : 'behind or closed'));
-    writeState(appPatch(msg.payload, { visible: v, home, visibleAt: Date.now() }));
+    writeState({ visible: v, home, visibleAt: Date.now() });
     msg.respond({ returnValue: true });
 });
 
@@ -422,23 +418,6 @@ service.register('test', async msg => {
     log('test ' + ev.kind + ' p' + prayer + ' in ' + seconds + ' s -> ' + JSON.stringify(r));
     msg.respond({ returnValue: !!(r && r.returnValue), at: utc(ev.at), result: r });
     release();
-});
-
-/**
- * The TV's own panel-off over luna. This firmware denies it to Developer Mode apps ("Denied method call
- * turnOffScreen for category /power"), so the page goes through the TV's remote-control connection instead
- * (app/js/ssap.js); kept for the page's test=lunaoff, to check again after a firmware update.
- */
-service.register('screenOff', async msg => {
-    const r = await call('luna://com.webos.service.tvpower/power/turnOffScreen', { standbyMode: 'active' });
-    log('turnOffScreen -> ' + JSON.stringify(r));
-    msg.respond({ returnValue: !!(r && r.returnValue), result: r });
-});
-
-service.register('screenOn', async msg => {
-    const r = await call('luna://com.webos.service.tvpower/power/turnOnScreen', { standbyMode: 'active' });
-    log('turnOnScreen -> ' + JSON.stringify(r));
-    msg.respond({ returnValue: !!(r && r.returnValue), result: r });
 });
 
 /** What the page wants kept in the log (timings, memory, test results). */

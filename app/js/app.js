@@ -16,7 +16,7 @@
   var SVC = 'luna://tv.afnon.lg.service/';
   var SVG = 'http://www.w3.org/2000/svg', XLINK = 'http://www.w3.org/1999/xlink';
   var KEY = { LEFT: 37, UP: 38, RIGHT: 39, DOWN: 40, OK: 13, BACK: 461 };
-  var FAJR = 0, SUNRISE = 1, DHUHR = 2, ASR = 3, MAGHRIB = 4;
+  var FAJR = 0, SUNRISE = 1, DHUHR = 2, ASR = 3, MAGHRIB = 4, ISHA = 5;
   /** Minutes before a prayer when the arch switches to its approaching outline (Tokens.APPROACH_MIN). */
   var APPROACH_S = 15 * 60;
   /** How long after a prayer time the call or announcement may still happen (Reminders.CALL_WINDOW_MS). */
@@ -72,7 +72,11 @@
     locale: 'system', digits: '', clock: 'system', city: 'cairo', method: null, madhab: 'shafi', hijri: 0,
     facing: -1, remind: 15, remindVoice: true, announce: true, adhan: true, callClose: 10,
     bells: [1, 0, 1, 1, 1, 1], voice: 'alafasy', voiceFajr: 'chebae_fajr', station: 'nablus', radioResume: true,
-    radioDark: 0, night: false, liveQuality: 480
+    radioDark: 0, night: false, liveQuality: 480,
+    // Minutes added to Fajr, Sunrise, Dhuhr, Asr, Maghrib and Isha (Settings → Adjust the times).
+    adjust: [0, 0, 0, 0, 0, 0],
+    // Minutes before the current prayer's time ends for «أوشك وقت صلاة … على الانتهاء»; 0 is off.
+    endRemind: 15
   };
   var S = loadSettings();
 
@@ -81,6 +85,7 @@
     try { o = JSON.parse(localStorage.getItem('afnon') || '{}') || {}; } catch (e) { o = {}; }
     for (var k in DEFAULTS) s[k] = o[k] !== undefined ? o[k] : DEFAULTS[k];
     if (!s.bells || s.bells.length !== 6) s.bells = DEFAULTS.bells.slice();
+    if (!s.adjust || s.adjust.length !== 6) s.adjust = DEFAULTS.adjust.slice();
     return s;
   }
   function saveSettings() {
@@ -106,7 +111,8 @@
     rtl = ar;
     h24 = S.clock === 'system' ? tvH24() : S.clock === '24';
     city = P.cityById(S.city);
-    clock = P.clockFor(city);
+    // cityclock=1 (desktop previews and screenshots): the city's own clock even where the browser has another zone.
+    clock = launchParams().cityclock ? new P.Clock(city, false) : P.clockFor(city);
     t = new Text(ar, eastern);
     t.cityName = ar ? city.ar : city.en;
     html.lang = ar ? 'ar' : 'en';
@@ -149,17 +155,25 @@
 
   /** One moment's view of the day: the six times, the current and next prayer, Friday, Ramadan, the Qibla. */
   function dayAt(now) {
-    var s = { method: method(), madhab: S.madhab };
+    var s = { method: method(), madhab: S.madhab, adjust: S.adjust };
     var today = P.timesFor(s, clock, now, 0), tomorrow = P.timesFor(s, clock, now, 1);
     var times = today.slice(), latest = -1, next = -1, i;
     for (i = 0; i < 6; i++) if (times[i] <= now) latest = i;
     for (i = 0; i < 6; i++) if (i !== SUNRISE && times[i] > now) { next = i; break; }
     if (next < 0) { next = FAJR; times[FAJR] = tomorrow[FAJR]; }
     var wall = clock.wall(now);
-    var h = hijriOf(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate() + (S.hijri | 0));
+    // The Hijri day begins at Maghrib: from then until midnight the date and weekday are the next day's (Friday
+    // evening is ليلة السبت). Ramadan follows it, so its first night has a suhoor and the night of Eid has none.
+    var eve = now >= today[MAGHRIB] ? 1 : 0;
+    var h = hijriOf(wall.getUTCFullYear(), wall.getUTCMonth(), wall.getUTCDate() + eve + (S.hijri | 0));
+    var weekday = (wall.getUTCDay() + eve) % 7;
     return {
       times: times, nowIndex: latest === SUNRISE ? -1 : latest, nextIndex: next, nextTime: times[next],
-      suhoorEnd: today[FAJR] > now ? today[FAJR] : tomorrow[FAJR], friday: wall.getUTCDay() === 5,
+      suhoorEnd: today[FAJR] > now ? today[FAJR] : tomorrow[FAJR],
+      // Jumu'ah is the Friday noon prayer: it names Dhuhr on Friday until its Maghrib, when the Hijri Saturday
+      // begins and the strip says الظهر again (Afnon's TCL build). Surat al-Kahf follows the Hijri Friday,
+      // Thursday's Maghrib to Friday's.
+      friday: wall.getUTCDay() === 5 && !eve, kahf: weekday === 5, weekday: weekday,
       hijriDay: h.day, hijriMonth: h.month, hijriYear: h.year, ramadan: h.month === 8,
       qibla: P.qibla(city.lat, city.lng), wall: wall
     };
@@ -170,8 +184,10 @@
     if (day.friday) n[DHUHR] = t.jumuah();
     return n;
   }
+  /** The Hijri date with its weekday, which turns at Maghrib with it ("السبت 13 جمادى الأولى 1448 هـ"). */
   function hijriText(day) {
-    return t.d(day.hijriDay + ' ' + t.hijriMonths()[day.hijriMonth] + ' ' + day.hijriYear + t.hijriSuffix());
+    return t.d(t.weekdays()[day.weekday] + ' ' + day.hijriDay + ' ' + t.hijriMonths()[day.hijriMonth] + ' ' +
+      day.hijriYear + t.hijriSuffix());
   }
 
   // ---------------------------------------------------------------- DOM helpers
@@ -349,11 +365,17 @@
     // second. It starts where the text is centred with average-width seconds, set again only when something
     // before the seconds changes: a digit that isn't changing never moves (Screen.renderCountdown).
     if (!marcellusDigits()) {
-      if (a.head !== '') { a.head = ''; a.count.style.paddingLeft = ''; }
+      if (a.head !== '') { a.head = ''; a.count.style.paddingLeft = ''; a.count.style.fontSize = ''; }
     } else {
       var head = count.slice(0, -2);
       if (head !== a.head) {
-        var px = hours ? 120 : 150, w = textWidth(head, px) + textWidth('0123456789', px) / 5;
+        // Ten hours or more ("10:00:00" is 575px at 120px) would overflow the 520px arch: a little smaller until it
+        // fits (Afnon's TCL fix). Measured with the minutes and seconds as zeros, the widest digit in Marcellus, so
+        // the size changes at most when the hour does, never every second.
+        var px = hours ? 120 : 150, zeros = textWidth(count.replace(/[0-9]{2}:[0-9]{2}$/, '00:00'), px);
+        if (zeros > 500) px = Math.floor(px * 500 / zeros);
+        a.count.style.fontSize = px === (hours ? 120 : 150) ? '' : px + 'px';
+        var w = textWidth(head, px) + textWidth('0123456789', px) / 5;
         a.count.style.paddingLeft = Math.max(0, Math.round((520 - w) / 2)) + 'px';
         // Until the font has loaded, the width is the fallback's: measure again next second.
         a.head = document.fonts && document.fonts.status !== 'loaded' ? null : head;
@@ -496,12 +518,21 @@
   });
   soundA.addEventListener('error', function () { if (Sound.kind && soundA.getAttribute('src')) soundDone(false); });
 
-  /** A spoken line (Announce.java): before_/now_ + the prayer, jumuah for Friday Dhuhr. The radio is lowered. */
+  /**
+   * A spoken line (Announce.java): before_/now_/end_ + the prayer, jumuah for Friday Dhuhr. The radio is lowered.
+   * Jumu'ah is said with Dhuhr's recordings for now (JUMUAH_CLIPS, as in the service): Lutfi Khamis recorded
+   * Dhuhr's lines, and Jumu'ah's own are still the old computer voice. There is no end_jumuah at all.
+   */
   var CLIPS = ['fajr', null, 'dhuhr', 'asr', 'maghrib', 'isha'];
+  var JUMUAH_CLIPS = false;
+  // The reminder before the prayer says «حان الآن» in Lutfi Khamis's voice (BEFORE_AS_NOW, as in the service), the
+  // maintainer's choice over «اقترب موعد» (the old computer voice).
+  var BEFORE_AS_NOW = true;
   function speak(kind, prayer, friday) {
     var name = CLIPS[prayer];
     if (!name || (Sound.kind && Sound.kind !== 'clip')) return;
-    if (friday && prayer === DHUHR) name = 'jumuah';
+    if (kind === 'before_' && BEFORE_AS_NOW) kind = 'now_';
+    if (JUMUAH_CLIPS && friday && prayer === DHUHR && kind !== 'end_') name = 'jumuah';
     radioA.volume = 0.3;
     playSound('sounds/announce/' + kind + name + '.wav', 'clip');
   }
@@ -682,7 +713,7 @@
     el('span', null, foot, t.today());
     foot._ok = function () { openDay(); };
 
-    var when = place(el('div', 'col', e), 760, 56);
+    var when = place(el('div', 'col when', e), 760, 56);
     home.clock = timeEl(when, 'clock disp num tnum');
     // Under the clock the Hijri date (with the city) first, then the Gregorian, smaller and in mist.
     home.date1 = el('div', null, when);
@@ -705,7 +736,10 @@
     el('span', 'gap', livePill);
     el('span', null, livePill, t.live());
     livePill._ok = chooseLive;
-    livePill._focus = function () { setArchFocused(false); setHints(home.hints, [t.hintOk(t.liveTitle())]); };
+    livePill._focus = function () {
+      setArchFocused(false);
+      setHints(home.hints, [t.hintOk(Live.place < 0 ? t.livePlaces()[0] : t.liveTitle())]);
+    };
 
     // The prayer strip: information only, never focusable.
     var cw = (1064 - 5 * 12) / 6;
@@ -850,13 +884,8 @@
 
   /** The Live pill's list: Makkah, Madinah, and Stop while one is on. */
   function chooseLive() {
-    var items = t.livePlaces().slice();
-    if (Live.place >= 0) items.push(t.radioStop());
-    openChooser(t.liveTitle(), items, Live.place, function (i) {
-      if (i === 2) return liveStop();
-      if (i !== Live.place || Live.state === Live.FAILED) liveStart(i);
-      focus(home.lFull);
-    });
+    if (Live.place < 0 || Live.state === Live.FAILED) liveStart(Live.place < 0 ? 0 : Live.place);
+    focus(home.lFull);
   }
 
   /** Full screen's quality list: each rendition with what an hour costs, the one playing chosen. */
@@ -909,12 +938,12 @@
     var day = home.day, a = home.arch, n = names(day);
     setTime(home.clock, now);
     setText(home.date1, hijriText(day) + t.sep() + t.city());
-    setText(home.date2, t.gregorian(clock.wall(now)));
+    setText(home.date2, t.gregorianDate(clock.wall(now)));
     var nextTime = clockText(day.nextTime);
     var label = t.nextPrayer(), name = n[day.nextIndex];
     var sub = t.adhanAt() + ' ' + nextTime + t.sep() + t.city(), sub2 = '';
     if (day.friday && day.nextIndex === DHUHR) label = t.jumuahLabel();
-    if (day.friday) sub2 = t.kahf();
+    if (day.kahf) sub2 = t.kahf();
     if (day.ramadan) {
       sub2 = t.suhoorEnds(clockText(day.suhoorEnd));
       if (day.nextIndex === MAGHRIB) {
@@ -1144,7 +1173,7 @@
 
   function renderDayMinute(now) {
     var d = day.d, a = day.arch, n = names(d);
-    setText(day.dates, hijriText(d) + t.sep() + t.gregorian(clock.wall(now)) + t.sep() + t.city());
+    setText(day.dates, hijriText(d) + t.sep() + t.gregorianDate(clock.wall(now)) + t.sep() + t.city());
     setText(a.label, d.friday && d.nextIndex === DHUHR ? t.jumuahLabel() : t.nextPrayer());
     setText(a.name, n[d.nextIndex]);
     setText(a.sub, t.methodName(method()));
@@ -1265,7 +1294,7 @@
 
   // ---------------------------------------------------------------- Settings (SettingsActivity)
 
-  var PRAYER_S = 0, REMIND_S = 1, RADIO_S = 2, DISPLAY_S = 3, NEWS_S = 4, SECTIONS = 5;
+  var PRAYER_S = 0, ADJUST_S = 1, REMIND_S = 2, RADIO_S = 3, DISPLAY_S = 4, NEWS_S = 5, SECTIONS = 6;
   var VALUE = 0, SEG = 1, STEP = 2, TOGGLE = 3;
   var set = screens.settings = {
     section: PRAYER_S, onNav: true, rowIndex: 0,
@@ -1275,13 +1304,14 @@
       if (set.onNav) focusNav(); else if (set.section === NEWS_S) focusNews(); else focusRow(set.rowIndex);
       refreshSettings();
     },
-    hide: function () { stopPreview(); }
+    hide: function () { stopPreview(); set.editing = null; }
   };
 
   function openSettings() { set.onNav = true; show('settings'); }
 
   function sectionName(i) {
-    return [t.sectionPrayer(), t.sectionReminders(), t.sectionRadio(), t.sectionDisplay(), t.sectionNews()][i];
+    return [t.sectionPrayer(), t.sectionAdjust(), t.sectionReminders(), t.sectionRadio(), t.sectionDisplay(),
+      t.sectionNews()][i];
   }
 
   function digitsOf(a) { return a.map(function (s) { return t.d(s); }); }
@@ -1291,6 +1321,18 @@
   function rowsFor(s) {
     var REMIND = [5, 10, 15, 20, 30, 0], CLOSE = [0, 1, 5, 10], DARK = [0, 15, -1];
     if (s === NEWS_S) return [];
+    // Adjust the times (meypod/al-azan's adjustments): each of the six, − and + by a minute, -30 to 30. Home,
+    // Prayer day, the reminders and the adhan all use the adjusted times.
+    if (s === ADJUST_S) return [0, 1, 2, 3, 4, 5].map(function (i) {
+      return { kind: STEP, label: function () { return t.prayerNames()[i]; }, low: -30, high: 30, signed: true,
+        help: function () {
+          var today = P.timesFor({ method: method(), madhab: S.madhab, adjust: S.adjust }, clock, Date.now(), 0);
+          return t.adjustTimeHelp(clockText(today[i]));
+        },
+        amount: function () { return S.adjust[i] | 0; },
+        value: function (n) { return t.minutesSigned(n == null ? S.adjust[i] | 0 : n); },
+        setAmount: function (n) { S.adjust[i] = n; changed(true); } };
+    });
     if (s === PRAYER_S) return [
       { kind: VALUE, label: t.location, help: function () { return t.locationHelp(city.lat, city.lng); },
         value: function () { return t.ar ? t.place(city.ar, city.countryAr) : t.place(city.en, city.countryEn); },
@@ -1305,8 +1347,9 @@
         selected: function () { return S.madhab === 'hanafi' ? 1 : 0; },
         select: function (i) { S.madhab = i === 1 ? 'hanafi' : 'shafi'; changed(true); } },
       { kind: STEP, label: t.hijriAdjust, help: function () { return t.hijriToday(hijriText(dayAt(Date.now()))); },
-        value: function () { return t.days(S.hijri | 0); },
-        step: function (d) { S.hijri = Math.max(-2, Math.min(2, (S.hijri | 0) + d)); changed(false); } },
+        low: -2, high: 2, amount: function () { return S.hijri | 0; },
+        value: function (n) { return t.days(n == null ? S.hijri | 0 : n); },
+        setAmount: function (n) { S.hijri = n; changed(false); } },
       { kind: VALUE, label: t.roomRow, help: t.roomHelp,
         value: function () { return S.facing < 0 ? t.notSet() : t.bearingLabel(S.facing); },
         open: function () { openDay(true); } }
@@ -1319,6 +1362,13 @@
         } },
       { kind: TOGGLE, label: t.remindVoiceRow, help: t.remindVoiceHelp, on: function () { return S.remindVoice; },
         set: function (b) { S.remindVoice = b; changed(true); } },
+      // «أوشك وقت صلاة … على الانتهاء»: how long before the current prayer's time ends, or off.
+      { kind: VALUE, label: t.endRemindRow, help: t.endRemindHelp,
+        value: function () { return digitsOf(t.remindChoices())[idx(REMIND, S.endRemind, 2)]; },
+        open: function () {
+          openChooser(t.endRemindRow(), digitsOf(t.remindChoices()), idx(REMIND, S.endRemind, 2),
+            function (i) { S.endRemind = REMIND[i]; changed(true); });
+        } },
       { kind: TOGGLE, label: t.adhanRow, help: t.adhanHelp, on: function () { return S.adhan; },
         set: function (b) { S.adhan = b; changed(true); } },
       { kind: TOGGLE, label: t.announceRow, help: t.announceHelp, on: function () { return S.announce; },
@@ -1331,7 +1381,8 @@
     ];
     if (s === RADIO_S) return [
       { kind: TOGGLE, label: function () { return t.station(station()); }, help: function () { return t.radioRowHelp(station()); },
-        on: function () { return Radio.wanted; }, set: function (b) { if (b) radioStart(); else radioStop(); } },
+        // Plays or stops the radio: an action, not a saved setting, so no ✓ Saved.
+        on: function () { return Radio.wanted; }, set: function (b) { if (b) radioStart(); else radioStop(); }, saves: false },
       { kind: VALUE, label: t.stationRow, help: function () { return t.stationGroups()[station().reciter ? 1 : 0]; },
         value: function () { return t.stationChoice(station()); }, open: chooseStation },
       { kind: SEG, label: t.afterAdhanRow, help: t.afterAdhanHelp, segs: t.afterAdhanChoices,
@@ -1393,6 +1444,8 @@
     derive();
     home.lastMinute = -1;
     day.lastMinute = -1;
+    watch.day = null;
+    watchRearm(Date.now());
     if (service) configureService();
     styleRadio();
   }
@@ -1424,6 +1477,8 @@
     set.label = place(el('div', 'mist caps', e), 640, 56);
     set.label.style.fontSize = '22px';
     set.hints = hintsEl(e, 640, 976);
+    // ✓ Saved: on the hint line at the rows' end edge, apart from the hints so they never shift.
+    set.saved = placeEnd(el('div', 'saved', e, t.saved()), 96, 976);
     // Every section's rows, built now and shown or hidden by section.
     set.rows = [];
     set.groups = [];
@@ -1433,6 +1488,7 @@
       set.groups.push(g);
       set.rows.push(rowsFor(s).map(function (r, k) { return buildRow(g, r, k); }));
     }
+    showUpdate();
   }
 
   function navItem(parent, i) {
@@ -1460,30 +1516,103 @@
         return x;
       });
     } else if (r.kind === STEP) {
-      el('div', 'step', c, '−');
+      // − value + (mirrored in Arabic: + value −); the pointer presses the buttons themselves.
+      el('div', 'step', c, '−')._d = -1;
       r.val = el('div', 'stepv', c);
-      el('div', 'step', c, '+');
+      // A signed number reads left to right ("-3"), also with Eastern digits in an Arabic row.
+      if (r.signed) r.val.dir = 'ltr';
+      el('div', 'step', c, '+')._d = 1;
     } else {
       r.sw = el('div', 'sw', c);
       el('i', null, r.sw);
     }
+    r.ctl = c;
     b._focus = function () {
-      setHints(set.hints, [t.hintMove(), r.kind === VALUE ? t.hintChoose() : t.hintChange(), t.hintBackMenu()]);
+      setHints(set.hints, [t.hintMove(), r.kind === VALUE ? t.hintChoose() : r.kind === TOGGLE ? t.hintSwitch() : t.hintEdit(),
+        t.hintBackMenu()]);
     };
-    b._ok = function () { rowAction(r, KEY.OK); };
+    b._ok = function () { rowAction(r); };
     return r;
   }
 
+  /** A row as saved, or, for the row being edited, with its unsaved draft and a ring round its control. */
   function renderRow(r) {
     setText(r.lb, call(r.label));
     var help = call(r.help);
     setText(r.hp, help);
     r.hp.style.display = help ? '' : 'none';
-    if (r.kind === VALUE || r.kind === STEP) setText(r.val, call(r.value));
+    var edit = set.editing === r;
+    r.ctl.classList.toggle('editing', edit);
+    if (r.kind === VALUE) setText(r.val, call(r.value));
+    else if (r.kind === STEP) setText(r.val, r.value(edit ? set.draft : null));
     else if (r.kind === SEG) {
-      var sel = r.selected();
+      var sel = edit ? set.draft : r.selected();
       for (var i = 0; i < r.segEls.length; i++) r.segEls[i].classList.toggle('on', i === sel);
     } else r.sw.classList.toggle('on', !!r.on());
+  }
+
+  // ---------------------------------------------------------------- editing a row (the TCL build's Settings keys)
+
+  /** OK on a SEG or STEP row: ◀▶ now move an unsaved draft, OK saves it, Back cancels. */
+  function startEditing(r) {
+    set.editing = r;
+    set.draft = r.kind === SEG ? r.selected() : r.amount();
+    renderRow(r);
+    setHints(set.hints, [t.hintChange(), t.hintSave(), t.hintBackCancel()]);
+  }
+  /** Leaves editing; save keeps the draft if it differs from what is saved. */
+  function stopEditing(save) {
+    var r = set.editing;
+    set.editing = null;
+    if (save && set.draft !== (r.kind === SEG ? r.selected() : r.amount())) {
+      if (r.kind === SEG) r.select(set.draft);
+      else r.setAmount(set.draft);
+      showSaved();
+    }
+    if (!set.rows) return;
+    refreshSettings();
+    focusRow(set.rowIndex);
+    r.el._focus();
+  }
+  /** One step of the draft while editing, within the row's range. */
+  function moveDraft(d) {
+    var r = set.editing;
+    var lo = r.kind === SEG ? 0 : r.low, hi = r.kind === SEG ? r.segEls.length - 1 : r.high;
+    var to = Math.max(lo, Math.min(hi, set.draft + d));
+    if (to === set.draft) return;
+    set.draft = to;
+    renderRow(r);
+  }
+  /** ✓ Saved at the end of the hint line for 2 s (motion.saved-lifetime); a new save starts it again. */
+  function showSaved() {
+    if (!set.saved) return;
+    clearTimeout(set.savedTimer);
+    set.saved.classList.add('on');
+    set.savedTimer = setTimeout(function () { set.saved.classList.remove('on'); }, 2000);
+  }
+
+  /**
+   * The pointer on a Settings row: − or + steps and saves at once, a segment is chosen at once; anything else on
+   * the row is OK. Returns true when it handled the click.
+   */
+  function pointerSetting(target) {
+    var rows = set.rows && set.rows[set.section];
+    if (!rows) return false;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r.el.contains(target)) continue;
+      if (set.editing) stopEditing(false);
+      if (r.kind === STEP && target._d) {
+        var n = Math.max(r.low, Math.min(r.high, r.amount() + target._d));
+        if (n !== r.amount()) { r.setAmount(n); showSaved(); }
+      } else if (r.kind === SEG && r.segEls.indexOf(target) >= 0) {
+        var s = r.segEls.indexOf(target);
+        if (s !== r.selected()) { r.select(s); showSaved(); }
+      } else return false;
+      refreshSettings();
+      return true;
+    }
+    return false;
   }
 
   function refreshSettings() {
@@ -1499,12 +1628,20 @@
    */
   function buildNews(g) {
     var page = set.news = place(el('div', 'news ui', g), 640, 112, 1184, 976 - 24 - 112);
+    // A newer version in the LG Content Store comes first; OK opens the store (showUpdate fills it).
+    set.updLine = el('div', 'nupd', page);
+    set.updHead = el('div', 'nhead', set.updLine);
+    set.updHow = el('div', 'nline', set.updLine);
     var list = set.newsList = el('div', null, page);
     t.news().forEach(function (group) {
       el('div', 'nhead gold', list, t.newsVersion(group[0]));
       for (var i = 1; i < group.length; i++) el('div', 'nline', list, '•  ' + t.d(group[i]));
     });
-    page._focus = function () { setHints(set.hints, [t.hintMove(), t.hintBackMenu()]); };
+    page._focus = function () {
+      setHints(set.hints, updateReady() ? [t.hintOk(t.lgStore()), t.hintMove(), t.hintBackMenu()]
+        : [t.hintMove(), t.hintBackMenu()]);
+    };
+    showUpdate();
   }
 
   /** Into What's new: ▲▼ scroll it, toward the start or Back return to the sections. */
@@ -1535,34 +1672,39 @@
     focus(set.rows[set.section][i].el);
   }
 
-  function rowAction(r, k) {
-    var toEnd = (k === KEY.RIGHT) !== rtl, d = toEnd ? 1 : -1, ok = k === KEY.OK;
-    if (r.kind === SEG) {
-      var n = r.segEls.length, sel = r.selected();
-      var to = ok ? (sel + 1) % n : Math.max(0, Math.min(n - 1, sel + d));
-      if (to === sel) return;
-      r.select(to);
-    } else if (r.kind === STEP) {
-      if (ok) return;
-      r.step(d);
-    } else if (r.kind === TOGGLE) {
+  /**
+   * OK on a row, the only key that changes anything (the TCL build's fix): a list opens, a switch flips, a choice
+   * or a stepper starts editing.
+   */
+  function rowAction(r) {
+    if (r.kind === SEG || r.kind === STEP) return startEditing(r);
+    if (r.kind === TOGGLE) {
       r.set(!r.on());
-    } else {
-      if (ok) r.open();
-      else if (!toEnd) focusNav();
+      if (r.saves !== false) showSaved();
+      refreshSettings();
       return;
     }
-    refreshSettings();
+    r.open();
   }
 
+  /**
+   * The arrows only move: ▲▼ through the sections or the rows, toward the end (or OK) into the rows, toward the
+   * start back to the sections. While a row is edited ◀▶ move its draft, OK saves and Back cancels.
+   */
   function settingsKey(k) {
+    var toEnd = (k === KEY.RIGHT) !== rtl;
+    if (set.editing) {
+      if (k === KEY.OK) stopEditing(true);
+      else if (k === KEY.BACK) stopEditing(false);
+      else if (k === KEY.LEFT || k === KEY.RIGHT) moveDraft(toEnd ? 1 : -1);
+      return;
+    }
     if (k === KEY.BACK) {
       if (set.onNav) show('home');
       else focusNav();
       return;
     }
     var vertical = k === KEY.UP || k === KEY.DOWN, up = k === KEY.UP ? -1 : 1;
-    var toEnd = (k === KEY.RIGHT) !== rtl;
     if (set.onNav) {
       if (vertical) {
         var to = set.section + up;
@@ -1573,6 +1715,7 @@
       return;
     }
     if (set.section === NEWS_S) {
+      if (k === KEY.OK) { if (updateReady()) openStore(); return; }
       if (vertical) set.news.scrollTop += up * 240;
       else if (!toEnd && (k === KEY.LEFT || k === KEY.RIGHT)) focusNav();
       return;
@@ -1583,7 +1726,8 @@
       if (r >= 0 && r < rows.length) focusRow(r);
       return;
     }
-    rowAction(rows[set.rowIndex], k);
+    if (k === KEY.OK) rowAction(rows[set.rowIndex]);
+    else if (!toEnd && (k === KEY.LEFT || k === KEY.RIGHT)) focusNav();
   }
 
   // ---------------------------------------------------------------- the list chooser (cities, methods, voices…)
@@ -1659,7 +1803,12 @@
     var back = ch.returnTo, pick = ch.pick;
     ch.pick = null;
     focus(back);
-    if (picked != null && pick) pick(picked);
+    if (picked != null && pick) {
+      pick(picked);
+      // A list in Settings saves what was picked; one that leads to another list (region, then country) opens it
+      // first, in its own timeout, and saves only at the last one.
+      setTimeout(function () { if (screen === set && !ch.on) showSaved(); }, 0);
+    }
     if (screen === set) refreshSettings();
   }
 
@@ -1847,7 +1996,7 @@
    * and the announcement come from here at once (the service's events land a few seconds later and are skipped).
    * Only changes while the page runs count: arm() takes whatever is already due as done.
    */
-  var watch = { reminded: '', called: '', announced: '', day: null, minute: -1 };
+  var watch = { reminded: '', called: '', announced: '', ended: '', day: null, minute: -1 };
 
   function due(nowMs) {
     var minute = Math.floor(nowMs / 60000);
@@ -1867,13 +2016,35 @@
       var left = Text.secondsUntil(d.nextTime, nowMs);
       r.remind = left > 0 && left <= S.remind * 60;
     }
+    // «أوشك وقت صلاة … على الانتهاء» (Afnon's TCL build), S.endRemind minutes before the current prayer's time ends
+    // (Settings → Reminders; 0 is off). Fajr ends at sunrise, Dhuhr, Asr and Maghrib at the next prayer, Isha at
+    // Fajr (before Fajr, the night's Isha is the current one).
+    if (S.endRemind > 0) {
+      var cur = d.nowIndex, end = 0;
+      if (cur === FAJR) end = d.times[SUNRISE];
+      else if (cur > SUNRISE) end = d.nextTime;
+      else if (nowMs < d.times[FAJR]) { cur = ISHA; end = d.times[FAJR]; }
+      var toEnd = end ? Text.secondsUntil(end, nowMs) : 0;
+      if (toEnd > 0 && toEnd <= S.endRemind * 60) r.end = { prayer: cur, time: end };
+    }
     return r;
   }
+  // A reminder that began less than this before the page started or came back is still the page's to give: the
+  // service, which fires a few seconds late, may have left it to the page (it thought Afnon was on Home).
+  var ARM_GRACE_MS = 30000;
   function watchArm(nowMs) {
     var r = due(nowMs), d = watch.day;
     if (r.call >= 0) watch.called = r.call + ':' + d.times[r.call];
-    if (r.announce >= 0) watch.announced = r.announce + ':' + d.times[r.announce];
-    if (r.remind) watch.reminded = d.nextIndex + ':' + d.nextTime;
+    if (r.announce >= 0 && nowMs - d.times[r.announce] > ARM_GRACE_MS) watch.announced = r.announce + ':' + d.times[r.announce];
+    if (r.remind && nowMs - (d.nextTime - S.remind * 60000) > ARM_GRACE_MS) watch.reminded = d.nextIndex + ':' + d.nextTime;
+    if (r.end && nowMs - (r.end.time - S.endRemind * 60000) > ARM_GRACE_MS) watch.ended = r.end.prayer + ':' + r.end.time;
+  }
+  /** After a settings change: a reminder that is not due with the new minutes may come again (5 → 10 → 5). */
+  function watchRearm(nowMs) {
+    var r = due(nowMs);
+    if (!r.remind) watch.reminded = '';
+    if (!r.end) watch.ended = '';
+    if (r.announce < 0) watch.announced = '';
   }
   function watchTick(nowMs) {
     var r = due(nowMs), d = watch.day, key;
@@ -1895,115 +2066,23 @@
         if (S.remindVoice) speak('before_', d.nextIndex, d.friday);
       }
     }
+    // After any line that is playing (the next prayer's reminder often comes at the same moment).
+    if (r.end && !dream.on && !offv.on && !Sound.kind) {
+      key = r.end.prayer + ':' + r.end.time;
+      if (key !== watch.ended) { watch.ended = key; speak('end_', r.end.prayer, d.friday); }
+    }
   }
 
-  // ---------------------------------------------------------------- the panel, screen off and the dim screen
+  // ---------------------------------------------------------------- screen off and the dim screen
 
   function localGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function localSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* this session only */ } }
 
   /**
-   * The TV's panel, off while the radio plays. A Developer Mode app is denied com.webos.service.tvpower, so this
-   * goes through the TV's own remote-control connection (js/ssap.js, loaded the first time it is needed), which
-   * the TV asks the viewer to allow once. Until it is allowed (or if it is declined) the screen is just black,
-   * as on Android where TCL's Audio Only is missing. want: what the screen should be; off: what it is.
+   * Screen off is Afnon's own black screen over everything (as on Android where TCL's Audio Only is missing). The
+   * TV's panel itself stays on: webOS gives store apps no way to turn it off (its power service is private, and
+   * the TV's remote-control connection is for other devices, not for apps on the TV).
    */
-  var Panel = { want: false, off: false, busy: false, explicit: false };
-  var PANEL_URI = 'ssap://com.webos.service.tvpower/power/', PANEL_KEY = 'afnon-panel';
-  var ssapWaiting = null;
-
-  function withSsap(cb) {
-    if (window.AfnonSsap) return cb(window.AfnonSsap);
-    if (ssapWaiting) return ssapWaiting.push(cb);
-    ssapWaiting = [cb];
-    var s = document.createElement('script');
-    s.src = 'js/ssap.js';
-    s.onload = s.onerror = function () {
-      var list = ssapWaiting;
-      ssapWaiting = null;
-      for (var i = 0; i < list.length; i++) list[i](window.AfnonSsap || null);
-    };
-    document.head.appendChild(s);
-  }
-
-  /** explicit: the Screen off button, which may show the TV's Allow prompt again after a No. */
-  function panel(want, explicit) {
-    Panel.want = want;
-    if (want && explicit) Panel.explicit = true;
-    panelSync();
-  }
-  function panelSync() {
-    if (Panel.busy || Panel.want === Panel.off) return;
-    // PANEL_KEY: null (never asked), 'asked' (the prompt went unanswered), 'declined' or 'ok' (allowed). The TV's
-    // prompt comes up by itself once at most; after that only the Screen off button brings it back.
-    var off = Panel.want, st = localGet(PANEL_KEY);
-    var canPrompt = Panel.explicit || st == null;
-    if (off && st !== 'ok' && !canPrompt && Panel.luna === false) return;
-    if (!TV) { Panel.off = off; return; }
-    Panel.busy = true;
-    // The page's own luna first, once per session: the service is denied it, the page may not be.
-    if (Panel.luna !== false) {
-      return luna('luna://com.webos.service.tvpower/power/' + (off ? 'turnOffScreen' : 'turnOnScreen'), { standbyMode: 'active' }, function (r) {
-        note('panel ' + (off ? 'off' : 'on') + ' (luna) -> ' + JSON.stringify(r).slice(0, 160));
-        Panel.busy = false;
-        if (r.returnValue) { Panel.luna = true; Panel.off = off; }
-        else Panel.luna = false;
-        panelSync();
-      });
-    }
-    if (off && st !== 'ok' && !canPrompt) { Panel.busy = false; Panel.want = false; return; }
-    withSsap(function (ssap) {
-      if (!ssap) { Panel.busy = false; return; }
-      ssap.request(PANEL_URI + (off ? 'turnOffScreen' : 'turnOnScreen'), { standbyMode: 'active' }, {
-        allowPrompt: off && canPrompt,
-        onPrompt: function () {
-          note('panel: the TV asks to allow Afnon');
-          if (localGet(PANEL_KEY) !== 'ok') localSet(PANEL_KEY, 'asked');
-          showAsk(true);
-        }
-      }, function (r) {
-        var ok = r.returnValue !== false;
-        Panel.busy = false;
-        if (off) Panel.explicit = false;
-        showAsk(false);
-        note('panel ' + (off ? 'off' : 'on') + ' -> ' + JSON.stringify(r).slice(0, 160));
-        if (ok) {
-          Panel.off = off;
-          Panel.at = Date.now();
-          localSet(PANEL_KEY, 'ok');
-          // The TV turns the panel back on by itself for a remote key, which Afnon may never see: its power
-          // state says so, and then the screen comes back here too.
-          if (off && !Panel.watching) {
-            Panel.watching = true;
-            ssap.subscribe('ssap://com.webos.service.tvpower/power/getPowerState', { subscribe: true }, function (p) {
-              if (p.returnValue === false) { Panel.watching = false; return; }
-              if (p.state) note('panel state ' + p.state);
-              if (p.state === 'Active' && Panel.off && !Panel.busy && Date.now() - Panel.at > 3000) {
-                Panel.off = false;
-                Panel.want = false;
-                wake();
-                setTimeout(function () { if (!Panel.off && !Panel.busy) ssap.close(); }, 0);
-              }
-            });
-          }
-        } else if (off) {
-          // Not allowed: the in-app black screen stays instead.
-          if (/cancel|reject|denied|declin/i.test(r.errorText || '')) localSet(PANEL_KEY, 'declined');
-          Panel.want = false;
-        } else Panel.off = false; // the key that came back has woken it anyway
-        if (Panel.want !== Panel.off && (ok || !off)) return panelSync();
-        // The socket is only kept while the panel is off, for a quick way back.
-        if (!Panel.off && window.AfnonSsap) window.AfnonSsap.close();
-      });
-    });
-  }
-
-  /** The line asking to choose Allow, while the TV shows its prompt; the black screen's note stays up for it. */
-  function showAsk(on) {
-    if (offv.ask) offv.ask.style.display = on ? '' : 'none';
-    if (dream.ask) dream.ask.style.display = on ? '' : 'none';
-    if (offv.on) fadeOffNote(on ? 0 : 6000);
-  }
 
   /** Any key, the call, the radio stopping or Afnon going behind another app: the screen and panel come back. */
   function wake() {
@@ -2022,8 +2101,6 @@
     var c = offv.col = el('div', 'offcol', v);
     offv.bars = bars(c, 5, 56, 48);
     offv.note = el('div', 'offnote', c);
-    offv.ask = el('div', 'offnote ask', c, t.allowPanel());
-    offv.ask.style.display = 'none';
   }
   function screenOff(explicit) {
     if (dream.on) hideDream();
@@ -2035,7 +2112,6 @@
     fadeOffNote(6000);
     tellService();
     note('screen off (' + (explicit ? 'button' : 'auto') + ')');
-    panel(true, explicit);
   }
   /** Shows the note and bars, and fades them after ms (0: they stay). */
   function fadeOffNote(ms) {
@@ -2053,14 +2129,13 @@
     clearTimeout(offv.timer);
     offv.el.classList.remove('on');
     setBarsLive(offv.bars, false);
-    panel(false);
   }
 
   /**
    * The dim screen (AfnonDream), in Afnon itself since LG keeps its own screensaver: after IDLE_MS without a key
    * while the radio plays, black with a dim arch outline, the clock, the date and the next prayer. The group moves
-   * every 60 s with an 800 ms fade. After Settings → Radio → Screen off while listening (at once by default) the
-   * panel goes off too. Any key comes back.
+   * every 60 s with an 800 ms fade. After Settings → Radio → Screen off while listening (at once by default) it
+   * goes all black. Any key comes back.
    */
   var IDLE_MS = 5 * 60000, DRIFT_MS = 60000, FADE_MS = 800, DREAM_W = 440, DREAM_H = 640;
   var lastInput = Date.now();
@@ -2080,8 +2155,6 @@
     var r = dream.radio = el('div', 'drow', c);
     dream.bars = bars(r, 3, 22, 20);
     dream.rtext = el('div', 'dradio', r);
-    dream.ask = el('div', 'dleft', c, t.allowPanel());
-    dream.ask.style.display = 'none';
   }
   function placeDream(x, y) {
     dream.group.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(y) + 'px)';
@@ -2107,7 +2180,7 @@
     clearTimeout(dream.fade);
     dream.el.classList.remove('on');
     setBarsLive(dream.bars, false);
-    if (dream.dark) { dream.dark = false; panel(false); }
+    dream.dark = false;
   }
   function drift() {
     dream.lastDrift = Date.now();
@@ -2123,7 +2196,7 @@
       dream.minute = minute;
       d = dream.day = dayAt(arrived ? nowMs + 1000 : nowMs);
       setTime(dream.clock, nowMs);
-      setText(dream.date, t.d(t.weekdays()[d.wall.getUTCDay()] + t.sep() + d.hijriDay + ' ' + t.hijriMonths()[d.hijriMonth]));
+      setText(dream.date, t.d(t.weekdays()[d.weekday] + t.sep() + d.hijriDay + ' ' + t.hijriMonths()[d.hijriMonth]));
       setText(dream.next, names(d)[d.nextIndex] + ' ' + clockText(d.nextTime));
     }
     var secs = Text.secondsUntil(d.nextTime, nowMs);
@@ -2136,7 +2209,6 @@
     if (due !== dream.dark) {
       dream.dark = due;
       dream.group.style.visibility = due ? 'hidden' : '';
-      panel(due, false);
     }
     setBarsLive(dream.bars, on && !due && Radio.state === Radio.PLAYING);
     if (!due && nowMs - dream.lastDrift >= DRIFT_MS) drift();
@@ -2147,11 +2219,66 @@
 
   // ---------------------------------------------------------------- the clock
 
+  /**
+   * Whether the TV's clock is set. After a power cut the TV starts with a wrong date (1 January) until LG's time
+   * server answers, sometimes minutes later, and Afnon may open before that: it showed the wrong next prayer
+   * (Fajr) until its next once-a-minute look. Now, while the clock isn't set (getSystemTime's timeValid), Home
+   * says so instead of times and nothing is called or spoken; the moment it is set, or jumps, everything is
+   * worked out again and the service is told, so it reschedules the adhan.
+   */
+  var Time = { valid: true, lastTick: 0 };
+  function lunaSubscribe(uri, params, cb) {
+    if (!TV) return;
+    var b = new PalmServiceBridge();
+    Time.bridge = b;   // kept, or the subscription would end with it
+    b.onservicecallback = function (m) { try { cb(JSON.parse(m)); } catch (e) { /* not JSON */ } };
+    b.call(uri, JSON.stringify(params));
+  }
+  lunaSubscribe('luna://com.palm.systemservice/time/getSystemTime', { subscribe: true }, function (r) {
+    if (r.timeValid === undefined) return;
+    var valid = r.timeValid !== false;
+    if (valid === Time.valid) return;
+    Time.valid = valid;
+    note('clock ' + (valid ? 'set: ' + new Date().toISOString() : 'not set yet'));
+    clockChanged();
+  });
+  /** The clock was set or jumped: the day, the watch and the service's schedule from the new time. */
+  function clockChanged() {
+    home.lastMinute = -1;
+    home.day = null;
+    watch.day = null;
+    day.lastMinute = -1;
+    watchArm(Date.now());
+    if (Time.valid) configureService(500);
+    tick(true);
+  }
+
   var tickTimer = 0, toldMinute = -1;
   function tick(force) {
     clearTimeout(tickTimer);
-    if (document.hidden) return;
+    if (document.hidden) { Time.lastTick = 0; return; }
     var nowMs = Date.now();
+    // A jump of more than a minute between seconds: the clock was set (or changed by hand).
+    if (Time.lastTick && Math.abs(nowMs - Time.lastTick - 1000) > 60000) {
+      note('clock jumped ' + Math.round((nowMs - Time.lastTick) / 1000) + ' s');
+      Time.lastTick = nowMs;
+      return clockChanged();
+    }
+    Time.lastTick = nowMs;
+    // Until the clock is set: no times on Home, nothing called or spoken.
+    home.el && home.el.classList.toggle('notime', !Time.valid);
+    if (!Time.valid) {
+      if (screen === home && home.arch) {
+        setText(home.arch.label, t.settingTime());
+        setText(home.arch.name, '');
+        setText(home.arch.count, '');
+        setText(home.arch.sub, '');
+        home.arch.sub2.style.display = 'none';
+        home.lastMinute = -1;
+      }
+      tickTimer = setTimeout(tick, 1000);
+      return;
+    }
     if (Math.floor(nowMs / 60000) !== toldMinute) { toldMinute = Math.floor(nowMs / 60000); tellService(true); }
     // Under the black or dim screen the screen beneath is left alone; it catches up when it shows again.
     if (dream.on) renderDream(nowMs);
@@ -2179,7 +2306,8 @@
     if (offv.on || dream.on) { e.preventDefault(); wake(); return; }
     if (k !== KEY.LEFT && k !== KEY.RIGHT && k !== KEY.UP && k !== KEY.DOWN && k !== KEY.OK && k !== KEY.BACK) return;
     e.preventDefault();
-    if (k === KEY.OK && e.repeat) return;
+    // Held keys repeat: OK and Back act once, so holding Back does not run back through every screen and out.
+    if ((k === KEY.OK || k === KEY.BACK) && e.repeat) return;
     key(k);
   });
 
@@ -2209,6 +2337,8 @@
     if (!x || x === stage || x === cur) return;
     if (ch.on && x.parentNode !== ch.list) return;
     if (day.picker && day.picker.on) return;
+    // While a Settings row is edited, nothing else.
+    if (screen === set && set.editing) return;
     if (screen === set) {
       for (var s = 0; s < SECTIONS; s++) if (set.nav[s] === x) { if (set.section !== s) showSection(s); return focusNav(); }
       var rows = set.rows[set.section];
@@ -2217,7 +2347,13 @@
     }
     if (x.offsetParent) focus(x);
   });
-  stage.addEventListener('click', function () { if (cur) key(KEY.OK); });
+  stage.addEventListener('click', function (e) {
+    lastInput = Date.now();
+    if (wake()) return;
+    // Settings: − / + and a choice's segments act at once under the pointer.
+    if (screen === set && !ch.on && pointerSetting(e.target)) return;
+    if (cur) key(KEY.OK);
+  });
 
   // ---------------------------------------------------------------- leaving and coming back
 
@@ -2250,6 +2386,8 @@
       // The service looked after anything that came due while Afnon was behind another app.
       watchArm(Date.now());
       tick(true);
+      // Once a day at most: a newer version in the LG Content Store?
+      checkUpdate(false);
     }
   });
 
@@ -2278,13 +2416,89 @@
       luna(SVC + 'configure', {
         visible: !document.hidden,
         settings: {
-          city: S.city, method: method(), madhab: S.madhab, bells: S.bells, adhan: S.adhan, remind: S.remind,
+          city: S.city, method: method(), madhab: S.madhab, adjust: S.adjust, bells: S.bells, adhan: S.adhan, remind: S.remind,
+          endRemind: S.endRemind,
           remindVoice: S.remindVoice, announce: S.announce, ar: t.ar, eastern: t.eastern, h24: h24
         }
       }, function (r) {
         if (r.next) note('scheduled ' + r.next.kind + ' p' + r.next.prayer + ' at ' + new Date(r.next.at).toISOString() + (r.persist ? ' (persist)' : ''));
       });
     }, delay == null ? 1500 : delay);
+  }
+
+  // ---------------------------------------------------------------- updates from the LG Content Store
+
+  /**
+   * The TV updates its store apps by itself (with its automatic updates on); an app can't install anything, and
+   * LG offers no way to open the store at one app's page. So once a day Afnon reads which version the LG Content
+   * Store has (store.json in the GitHub repository, raised by the maintainer once LG has published a release) and,
+   * when that is newer than this one, says so: a gold dot on Settings and on What's new, and a line at the top of
+   * What's new whose OK opens the LG Content Store, where Afnon can be updated.
+   */
+  var STORE_JSON = 'https://raw.githubusercontent.com/alequab/afnon-webos/main/store.json';
+  var STORE_ID = 'com.webos.app.discovery', UPDATE_KEY = 'afnon-update', UPDATE_EVERY_MS = 24 * 3600000;
+  var Update = { mine: '', store: '' };
+
+  /** "1.10.0" is newer than "1.9.2": part by part, as numbers. */
+  function newerVersion(a, b) {
+    var x = String(a).split('.'), y = String(b).split('.');
+    for (var i = 0; i < Math.max(x.length, y.length); i++) {
+      var d = (+x[i] || 0) - (+y[i] || 0);
+      if (d) return d > 0;
+    }
+    return false;
+  }
+  function updateReady() { return !!(Update.mine && Update.store && newerVersion(Update.store, Update.mine)); }
+
+  function getJson(url, cb) {
+    var x = new XMLHttpRequest();
+    x.timeout = 15000;
+    x.onload = function () { var o = null; try { o = JSON.parse(x.responseText); } catch (e) { /* not JSON */ } cb(o); };
+    x.onerror = x.ontimeout = function () { cb(null); };
+    try { x.open('GET', url); x.send(); } catch (e) { cb(null); }
+  }
+
+  /** now: whenever the last look was (test=update); pretend: a store version to show, for testing. */
+  function checkUpdate(now, pretend) {
+    // This version, from the app's own appinfo.json.
+    if (!Update.mine) return getJson('appinfo.json', function (a) {
+      if (a && a.version) { Update.mine = String(a.version); checkUpdate(now, pretend); }
+    });
+    var last = {};
+    try { last = JSON.parse(localGet(UPDATE_KEY) || '{}') || {}; } catch (e) { last = {}; }
+    if (pretend) { Update.store = String(pretend); return showUpdate(); }
+    if (!Update.store && last.store) { Update.store = last.store; showUpdate(); }
+    if (!now && Date.now() - (last.checked || 0) < UPDATE_EVERY_MS) return;
+    getJson(STORE_JSON + '?d=' + Math.floor(Date.now() / UPDATE_EVERY_MS), function (o) {
+      var v = o && typeof o.version === 'string' && /^\d+(\.\d+)*$/.test(o.version) ? o.version : '';
+      note('LG Content Store has ' + (v || '(no answer)') + ', this is ' + Update.mine);
+      // No answer (offline): tried again the next time Afnon comes to the front.
+      if (!v) return;
+      Update.store = v;
+      localSet(UPDATE_KEY, JSON.stringify({ checked: Date.now(), store: v }));
+      showUpdate();
+    });
+  }
+
+  /** The dots on Settings and What's new, and What's new's own line, as things stand. */
+  function showUpdate() {
+    var on = updateReady();
+    if (home.gear) home.gear.classList.toggle('upd', on);
+    if (set.nav) set.nav[NEWS_S].classList.toggle('upd', on);
+    if (set.updLine) {
+      set.updLine.style.display = on ? '' : 'none';
+      if (on) {
+        setText(set.updHead, t.updateReady(t.newsVersion(Update.store)));
+        setText(set.updHow, t.updateHow());
+      }
+    }
+  }
+
+  function openStore() {
+    note('opening the LG Content Store for ' + Update.store);
+    luna('luna://com.webos.applicationManager/launch', { id: STORE_ID }, function (r) {
+      if (!r.returnValue) note('store launch failed: ' + (r.errorText || ''));
+    });
   }
 
   // ---------------------------------------------------------------- launch params and test hooks
@@ -2297,11 +2511,11 @@
    *                                    friday=1 with prayer=2 takes it as Jumu'ah)
    *   test=card                       Home's own reminder card at once (Android's test=reminder)
    *   test=friday|ramadan|now         Home's clock jumps to Friday 10:30, 15 Ramadan 16:30, or back
+   *   at=<ISO time>                   Home's clock jumps to that moment
    *   test=radio                      the radio on or off;  station=<id> picks a station first
-   *   test=screenoff                  Home's Screen off button (radio on, panel off through the TV's remote
-   *                                   connection, or the black screen); any key comes back
+   *   test=screenoff                  Home's Screen off button (radio on, the black screen); any key comes back
    *   test=dream                      the dim screen now (radio on);  idle=<seconds> its idle time, this session
-   *   test=lunaoff                    the service's luna turnOffScreen for 4 s (denied on this firmware)
+   *   test=update                     checks the LG Content Store version now (version=<x.y.z> pretends it)
    *   test=mem                        logs the page's memory
    *   live=makkah|madinah|off         the live video on Home;  quality=<height> first;  full=1 full screen
    *   set=key:value,…                 changes saved settings (callClose:10, night:1, radioDark:15 …)
@@ -2344,13 +2558,15 @@
       showReminder();
     } else if (kind === 'friday' || kind === 'ramadan' || kind === 'now') shiftTo(kind);
     else if (kind === 'radio') radioToggle();
-    else if (kind === 'lunaoff') {
-      // The service's own luna route, which this firmware denies to Developer Mode apps (kept to check again).
-      luna(SVC + 'screenOff', {}, function (r) {
-        note('service screenOff ' + JSON.stringify(r));
-        setTimeout(function () { luna(SVC + 'screenOn', {}, function (q) { note('service screenOn ' + JSON.stringify(q)); }); }, 4000);
-      });
-    } else if (kind === 'mem') memNote('mem');
+    else if (kind === 'update') checkUpdate(true, p.version);
+    else if (kind === 'mem') memNote('mem');
+    // at=<ISO time>: Home's clock jumps there (e.g. a winter night in London, for a 12-hour countdown).
+    if (p.at && !isNaN(Date.parse(p.at))) {
+      home.shift = Date.parse(p.at) - Date.now();
+      home.day = null;
+      if (screen !== home) show('home');
+      tick(true);
+    }
     if (p.live) {
       if (screen !== home) show('home');
       if (+p.quality > 0) { S.liveQuality = +p.quality; saveSettings(); }
@@ -2369,7 +2585,7 @@
     var done = [];
     list.split(',').forEach(function (kv) {
       var i = kv.indexOf(':'), k = kv.slice(0, i), v = kv.slice(i + 1);
-      if (i < 0 || !(k in DEFAULTS) || k === 'locale' || k === 'digits' || k === 'clock') return;
+      if (i < 0 || !(k in DEFAULTS) || k === 'locale' || k === 'digits' || k === 'clock' || typeof DEFAULTS[k] === 'object') return;
       var d = DEFAULTS[k];
       S[k] = typeof d === 'boolean' ? (v === '1' || v === 'true') : typeof d === 'number' ? +v : v;
       done.push(k + '=' + JSON.stringify(S[k]));
@@ -2454,7 +2670,8 @@
   if (!back) displayParams(first);
   derive();
   // The desktop preview scales the 1920×1080 stage to the window; the TV is 1920×1080 already.
-  if (!window.PalmSystem && window.innerWidth && window.innerWidth !== 1920) {
+  // shot=1: a 1920×1080 screenshot as the TV shows it, unscaled.
+  if (!window.PalmSystem && !first.shot && window.innerWidth && window.innerWidth !== 1920) {
     var k = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
     stage.style.transform = 'scale(' + k + ')';
     // The page is narrower than 1920 here; in Arabic it would otherwise scroll to the right end.
@@ -2491,6 +2708,8 @@
   var timing = window.performance && performance.timing;
   var readyMs = Date.now() - (timing && timing.navigationStart ? timing.navigationStart : started);
   configureService(2500);
+  // After the first screen has settled: the LG Content Store's version (once a day; the last answer at once).
+  setTimeout(function () { checkUpdate(false); }, 15000);
   var fontsMs = 0;
   if (window.document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fontsMs = Date.now() - started; });
   setTimeout(function () {
@@ -2499,6 +2718,6 @@
     memNote('first screen ' + readyMs + ' ms after the page started, fonts ' + (fontsMs || '?') + ' ms; zone ' + zone +
       ' ' + (-new Date().getTimezoneOffset()) + ' min, ' + (clock.useDevice ? 'the TV\'s' : 'the city\'s (' + city.zone + ')') + ' clock');
   }, 3000);
-  window.afnon = { key: key, show: show, openCall: openCall, showReminder: showReminder, S: S, radio: Radio,
+  window.afnon = { key: key, show: show, openCall: openCall, showReminder: showReminder, S: S, radio: Radio, time: Time,
     showDream: showDream, screenOff: screenOff, drift: drift };
 })();

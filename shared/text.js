@@ -140,8 +140,8 @@
   };
   T.radioDarkRow = function () { return this.ar ? 'إطفاء الشاشة أثناء الاستماع' : 'Screen off while listening'; };
   T.radioDarkHelp = function () {
-    return this.d(this.ar ? 'توفير الكهرباء: تنطفئ الشاشة وتستمر الإذاعة · أي زر يعيدها'
-                          : 'Saves power: the screen goes dark, the radio keeps playing · any key brings it back');
+    return this.d(this.ar ? 'شاشة سوداء وتستمر الإذاعة · أي زر يعيدها'
+                          : 'The screen goes black, the radio keeps playing · any key brings it back');
   };
   T.radioDarkChoices = function () {
     return this.ar ? ['مع شاشة التوقف', 'بعدها بـ 15 د', 'أبدًا'] : ['With screensaver', '15 min later', 'Never'];
@@ -151,11 +151,6 @@
   T.nightHelp = function () { return this.ar ? 'ألوان أهدأ وأخفت للمشاهدة ليلًا' : 'Calmer, dimmer colours for watching at night'; };
   T.nightOn = function () { return this.ar ? 'تشغيل الوضع الليلي' : 'Night mode on'; };
   T.nightOff = function () { return this.ar ? 'إيقاف الوضع الليلي' : 'Night mode off'; };
-  // LG: turning the panel off goes through the TV's remote-control connection, which the TV asks about once.
-  T.allowPanel = function () {
-    return this.ar ? 'للسماح لأفنون بإطفاء الشاشة: اختر «سماح» في رسالة التلفاز (مرة واحدة فقط)'
-                   : 'To let Afnon turn the screen off, choose Allow on the TV\'s message (once only)';
-  };
   // LG: Afnon is an app here, not the home screen, so the radio lives while Afnon is open.
   T.radioNoteLg = function () {
     return this.d(this.ar ? 'تعمل ما دام أفنون مفتوحًا · تتوقف عند الخروج منه'
@@ -206,6 +201,7 @@
       case 'NORTH_AMERICA': return this.ar ? 'الجمعية الإسلامية لأمريكا الشمالية' : 'ISNA, North America';
       case 'MOON_SIGHTING_COMMITTEE': return this.ar ? 'لجنة رؤية الهلال' : 'Moonsighting Committee';
       case 'SINGAPORE': return this.ar ? 'سنغافورة' : 'Singapore';
+      case 'OMAN_AWQAF': return this.ar ? 'وزارة الأوقاف والشؤون الدينية، سلطنة عُمان' : 'Ministry of Awqaf, Oman';
       default: return this.ar ? 'الهيئة المصرية العامة للمساحة' : 'Egyptian General Authority of Survey';
     }
   };
@@ -216,7 +212,11 @@
     var isha = a.interval > 0
       ? (this.ar ? 'العشاء بعد المغرب بـ ' + a.interval + ' دقيقة' : 'Isha ' + a.interval + ' min after Maghrib')
       : (this.ar ? 'العشاء ' : 'Isha ') + a.isha + '°';
-    return this.d(fajr + ' · ' + isha);
+    // The minutes a method adds to Dhuhr, Asr and Maghrib (Oman), in words before the number in Arabic, so no sign
+    // lands on the wrong side.
+    var extra = !a.plus ? '' : this.ar ? ' · الظهر والعصر والمغرب بزيادة ' + a.plus + ' دقائق'
+      : ' · Dhuhr, Asr and Maghrib +' + a.plus + ' min';
+    return this.d(fajr + ' · ' + isha + extra);
   };
 
   // Settings
@@ -224,6 +224,14 @@
   T.sectionReminders = function () { return this.ar ? 'التنبيهات والأذان' : 'Reminders & adhan'; };
   T.sectionDisplay = function () { return this.ar ? 'العرض واللغة' : 'Display & language'; };
   T.sectionNews = function () { return this.ar ? 'ما الجديد' : "What's new"; };
+  // A newer version in the LG Content Store (What's new's first line; OK opens the store).
+  T.updateReady = function (version) {
+    return this.ar ? 'إصدار أحدث في متجر LG: ' + version : 'Newer in the LG Content Store: ' + version;
+  };
+  T.updateHow = function () {
+    return this.ar ? 'اضغط OK لفتح متجر LG، ثم حدِّث أفنون منه' : 'Press OK to open the LG Content Store, then update Afnon there';
+  };
+  T.lgStore = function () { return this.ar ? 'متجر LG' : 'LG Content Store'; };
   /** A release's heading on the What's new page: «أفنون 0.2.0» / "Afnon 0.2.0", in the chosen digits. */
   T.newsVersion = function (version) {
     return (this.ar ? 'أفنون ' : 'Afnon ') + (this.eastern ? this.d(version).replace(/\./g, '٫') : version);
@@ -235,13 +243,18 @@
    */
   T.news = function () {
     if (this.ar) return [
-      ['0.2.0',
-        '136 مدينة في 43 دولة، تُختار بالمنطقة ثم الدولة ثم المدينة',
-        'لكل مدينة مذهب العصر المعتاد فيها، ويبقى تغييره ممكنًا',
-        'مع الأرقام اللاتينية، الأرقام الكبيرة بخط الإنجليزية (Marcellus)، والعدّ التنازلي ثابت في مكانه',
-        'بث مباشر من مكة المكرمة والمدينة المنورة: زر «مباشر» في الرئيسية، مع ملء الشاشة واختيار الجودة',
-        'من السعودية: إذاعة القرآن الكريم وإذاعة نداء الإسلام',
-        'لم تعد إذاعة القرآن الكريم من القاهرة ضمن المحطات',
+      ['1.0.0',
+        '192 مدينة تُختار بالمنطقة ثم الدولة ثم المدينة، ولكل مدينة مذهب العصر المعتاد فيها',
+        'طريقة وزارة الأوقاف العُمانية، والعشاء في رمضان بعد المغرب بساعتين لمدن أم القرى',
+        'تعديل كل وقت بالدقائق: الإعدادات ← تعديل المواقيت',
+        'تنبيه بالصوت قبل خروج وقت الصلاة',
+        'التاريخ الهجري واليوم يتغيّران عند المغرب، والجمعة حتى مغربها',
+        'بث مباشر من مكة المكرمة والمدينة المنورة: زر «مباشر» يشغّل مكة المكرمة مباشرة',
+        'من السعودية: إذاعة القرآن الكريم وإذاعة نداء الإسلام، وصوتا أذان جديدان',
+        'في الإعدادات: OK للتعديل ثم OK للحفظ، مع علامة «تم الحفظ»',
+        'بعد انقطاع الكهرباء لا تظهر المواقيت قبل ضبط ساعة التلفاز',
+        'يخبرك أفنون حين يصل إصدار أحدث إلى متجر LG',
+        'مع الأرقام اللاتينية، الأرقام الكبيرة بخط Marcellus',
         'هذه الصفحة: ما الجديد في كل إصدار'],
       ['0.1.0',
         'أول إصدار لتلفاز LG: الصلاة القادمة والعدّ التنازلي في المحراب، ومواقيت اليوم والقبلة',
@@ -251,13 +264,18 @@
         'الوضع الليلي']
     ];
     return [
-      ['0.2.0',
-        '136 cities in 43 countries, picked by region, then country, then city',
-        'Each city starts on its usual Asr school, which you can still change',
-        'With Latin digits in Arabic, the big numbers in the English font (Marcellus), and the countdown holds still',
-        'Live from Makkah and Madinah: the Live button on Home, with full screen and a choice of quality',
-        'From Saudi Arabia: Holy Quran Radio and Nida Al-Islam Radio',
-        "Cairo's Holy Quran Radio is no longer in the list",
+      ['1.0.0',
+        '192 cities, picked by region, then country, then city, each on its usual Asr school',
+        "Oman's Ministry of Awqaf method, and Isha two hours after Maghrib in Ramadan for Umm al-Qura cities",
+        'Each time adjustable by minutes: Settings → Adjust the times',
+        "A spoken warning before a prayer's time ends",
+        "The Hijri date and weekday turn at Maghrib, and Jumu'ah lasts until its Maghrib",
+        'Live from Makkah and Madinah: the Live button plays Makkah at once',
+        'From Saudi Arabia: Holy Quran Radio and Nida Al-Islam Radio, and two more adhan voices',
+        'In Settings, OK edits and OK saves, with a ✓ Saved mark',
+        "After a power cut, no times until the TV's clock is set",
+        'Afnon tells you when the LG Content Store has a newer version',
+        'With Latin digits in Arabic, the big numbers in Marcellus',
         "This page: what's new in each release"],
       ['0.1.0',
         'The first version for LG TVs: the next prayer and countdown in the mihrab, today\'s prayers and the Qibla',
@@ -303,7 +321,13 @@
     return this.ar ? ['5 د', '10 د', '15 د', '20 د', '30 د', 'إيقاف'] : ['5 min', '10 min', '15 min', '20 min', '30 min', 'Off'];
   };
   T.remindVoiceRow = function () { return this.ar ? 'تذكير صوتي' : 'Spoken reminder'; };
-  T.remindVoiceHelp = function () { return this.ar ? '«اقترب موعد صلاة …» مع التذكير' : 'Says «اقترب موعد صلاة …» with the reminder'; };
+  // The reminder says «حان الآن موعد صلاة …» (BEFORE_AS_NOW in the page and the service).
+  T.remindVoiceHelp = function () { return this.ar ? '«حان الآن موعد صلاة …» مع التذكير' : 'Says «حان الآن موعد صلاة …» with the reminder'; };
+  T.endRemindRow = function () { return this.ar ? 'تنبيه قبل خروج الوقت' : 'Before the time ends'; };
+  T.endRemindHelp = function () {
+    return this.ar ? '«أوشك وقت صلاة … على الانتهاء»، قبل نهاية وقت الصلاة الحالية'
+                   : "Says «أوشك وقت صلاة … على الانتهاء» before the current prayer's time ends";
+  };
   T.announceRow = function () { return this.ar ? 'إعلان دخول الوقت' : 'Announce the time'; };
   T.announceHelp = function () {
     return this.ar ? '«حان الآن موعد صلاة …» للصلاة التي أذانها متوقف' : "Says «حان الآن موعد صلاة …» when a prayer's adhan is off";
@@ -321,6 +345,24 @@
   T.hintChange = function () { return this.ar ? '◀▶  تغيير القيمة' : '◀▶  Change value'; };
   T.hintChoose = function () { return this.ar ? 'OK  اختيار' : 'OK  Choose'; };
   T.hintBackMenu = function () { return this.ar ? 'رجوع  القائمة' : 'Back  Menu'; };
+  // Settings keys (the TCL build's fix): the arrows only move, OK edits, then OK saves or Back cancels.
+  T.hintEdit = function () { return this.ar ? 'OK  تعديل' : 'OK  Edit'; };
+  T.hintSwitch = function () { return this.ar ? 'OK  تشغيل/إيقاف' : 'OK  On/Off'; };
+  T.hintSave = function () { return this.ar ? 'OK  حفظ' : 'OK  Save'; };
+  T.hintBackCancel = function () { return this.ar ? 'رجوع  إلغاء' : 'Back  Cancel'; };
+  T.saved = function () { return this.ar ? '✓  تم الحفظ' : '✓  Saved'; };
+
+  // Adjusting the times (Settings → Adjust the times)
+  T.sectionAdjust = function () { return this.ar ? 'تعديل المواقيت' : 'Adjust the times'; };
+  /** A time's adjustment between its − and + buttons: "+2", "0", "-3" (minutes). */
+  T.minutesSigned = function (n) { return this.d(n > 0 ? '+' + n : String(n)); };
+  /** Under each time's name: what it is today with the adjustment, and what the buttons do. */
+  T.adjustTimeHelp = function (time) {
+    return this.d(this.ar ? 'اليوم ' + time + ' · بالدقائق، حتى 30 قبله أو بعده'
+                          : 'Today ' + time + ' · in minutes, up to 30 earlier or later');
+  };
+  /** Home while the TV's clock isn't set yet (after a power cut, until LG's time server answers). */
+  T.settingTime = function () { return this.ar ? 'جارٍ ضبط الوقت…' : 'Setting the time…'; };
   T.qibla = function () { return this.ar ? 'القبلة' : 'QIBLA'; };
   T.north = function () { return this.ar ? 'الشمال ▲' : '▲ North'; };
   T.qiblaHint = function () { return this.ar ? 'وجّه الشمال على البوصلة نحو الشمال الحقيقي' : 'Line up the compass north with true north'; };
@@ -428,6 +470,10 @@
   /** "Wednesday 21 October 2026" in the screen's language and digits, from a wall Date. */
   T.gregorian = function (wall) {
     return this.d(this.weekdays()[wall.getUTCDay()] + ' ' + wall.getUTCDate() + ' ' + this.months()[wall.getUTCMonth()] + ' ' + wall.getUTCFullYear());
+  };
+  /** The Gregorian date without its weekday: the weekday goes with the Hijri date, which turns at Maghrib. */
+  T.gregorianDate = function (wall) {
+    return this.d(wall.getUTCDate() + ' ' + this.months()[wall.getUTCMonth()] + ' ' + wall.getUTCFullYear());
   };
 
   return Text;

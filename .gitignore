@@ -2,7 +2,8 @@
 out/
 
 # Sounds: the adhan recordings have no licence (tools/fetch-adhans.ps1 downloads them) and the spoken lines are
-# made on your PC with Windows' voice (tools/make-voice.ps1). Neither is published.
+# made on your PC with Windows' voice (tools/make-voice.ps1). Neither is in the source; the release package
+# (tools/release.ps1) carries them, since Afnon is of no use without them.
 app/sounds/
 service/announce/
 
