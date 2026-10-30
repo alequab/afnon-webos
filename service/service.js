@@ -111,6 +111,9 @@ function settings(s, prev) {
     const bells = Array.isArray(s.bells) && s.bells.length === 6 ? s.bells : [1, 0, 1, 1, 1, 1];
     return {
         adjust: adjustOf(s.adjust) || adjustOf(prev && prev.adjust) || [0, 0, 0, 0, 0, 0],
+        // Minutes before a prayer's time ends for «أوشك وقت صلاة … على الانتهاء» (the launcher's setting; 0 off).
+        endRemind: s.endRemind != null ? Math.max(0, +s.endRemind || 0)
+            : prev && prev.endRemind != null ? prev.endRemind : 0,
         city: s.city || 'cairo', method: s.method || null, madhab: s.madhab === 'hanafi' ? 'hanafi' : 'shafi',
         bells: bells.map(b => (b ? 1 : 0)), adhan: s.adhan !== false, remind: s.remind == null ? 15 : +s.remind,
         remindVoice: s.remindVoice !== false, announce: s.announce !== false,
@@ -122,16 +125,25 @@ function clockFor(s) {
     return Prayer.clockFor(Prayer.cityById(s.city));
 }
 
-/** Every reminder, call and announcement from yesterday to the day after tomorrow, earliest first. */
+/**
+ * Every reminder, call, announcement and "time is ending" warning from yesterday to the day after tomorrow,
+ * earliest first. A prayer's time ends (event `end`, its `time` the end): Fajr at sunrise, Dhuhr, Asr and Maghrib at
+ * the next prayer, Isha at the next day's Fajr.
+ */
 function events(s) {
     const clock = clockFor(s), now = Date.now(), out = [];
     for (let d = -1; d <= 2; d++) {
         const t = Prayer.timesFor(s, clock, now, d);
+        const next = Prayer.timesFor(s, clock, now, d + 1);
         for (let i = 0; i < 6; i++) {
             if (i === Prayer.SUNRISE) continue;
             if (s.remind > 0) out.push({ kind: 'reminder', prayer: i, time: t[i], at: t[i] - s.remind * 60000 });
             if (s.adhan && s.bells[i]) out.push({ kind: 'call', prayer: i, time: t[i], at: t[i] });
             else if (s.announce) out.push({ kind: 'announce', prayer: i, time: t[i], at: t[i] });
+            if (s.endRemind > 0) {
+                const end = i === Prayer.FAJR ? t[Prayer.SUNRISE] : i === Prayer.ISHA ? next[Prayer.FAJR] : t[i + 1];
+                out.push({ kind: 'end', prayer: i, time: end, at: end - s.endRemind * 60000 });
+            }
         }
     }
     return out.sort((a, b) => a.at - b.at);
@@ -295,6 +307,14 @@ async function act(ev, s, opts) {
         if (pageHome) log('announce p' + ev.prayer + ': Afnon is on Home, it says it');
         else log('announce p' + ev.prayer + ' toast -> ' + JSON.stringify(await toast(t.toastNow(p.name, at))));
         if (!pageInFront) await voice(clipName('now_', ev, p.friday), opts);
+        return;
+    }
+    if (ev.kind === 'end') {
+        // «أوشك وقت صلاة … على الانتهاء». In front, the page says it itself. Jumu'ah has no recording yet: silent.
+        // (ev.time is the end; prayerName looks at the prayer's own day, the same Friday for Dhuhr.)
+        if (pageInFront) log('end p' + ev.prayer + ': Afnon is in front, it says it');
+        else if (p.friday) log('end p' + ev.prayer + ': no Jumu\'ah recording');
+        else await voice(clipName('end_', ev, false), opts);
         return;
     }
     if (ev.kind === 'voice') await voice(opts.clip || clipName('before_', ev, p.friday), opts);

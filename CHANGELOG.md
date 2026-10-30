@@ -30,6 +30,12 @@ All notable changes to Afnon for LG webOS. Versions match `version` in `app/appi
   - `ares-launch … -p live=makkah|madinah|off` (with `quality=<height>`, `full=1`) tries it.
 
 ### Changed
+- **From Afnon 0.7, in the shared prayer code:** the Oman Ministry of Awqaf's method (`OMAN_AWQAF`: 18°, +5
+  minutes on Dhuhr, Asr and Maghrib) and 56 more cities (192), Indonesia's in its three time zones.
+- **The service warns before a prayer's time ends:** event `end` («أوشك وقت صلاة … على الانتهاء», clips
+  `end_<prayer>`), `endRemind` minutes before Fajr's sunrise, the next prayer, or Isha's Fajr, from Islamic
+  Launcher for LG TV's setting (0 off; a page without it keeps the saved one). Silent for Jumu'ah, which has no
+  recording yet. The spoken lines may be anyone's recordings (on this TV, Lutfi Khamis's); not in the repo.
 - **Minutes added to each time:** the prayer code and the service take `adjust` (six minutes, -30 to 30) with
   the settings, as Islamic Launcher for LG TV's Settings sets it; the reminders and the adhan follow it. A page
   that doesn't send it (this app) keeps the saved one.
