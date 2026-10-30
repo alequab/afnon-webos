@@ -142,7 +142,9 @@ function events(s) {
             else if (s.announce) out.push({ kind: 'announce', prayer: i, time: t[i], at: t[i] });
             if (s.endRemind > 0) {
                 const end = i === Prayer.FAJR ? t[Prayer.SUNRISE] : i === Prayer.ISHA ? next[Prayer.FAJR] : t[i + 1];
-                out.push({ kind: 'end', prayer: i, time: end, at: end - s.endRemind * 60000 });
+                // 10 s after the moment itself: with the same minutes as the reminder, a prayer's end is the next
+                // prayer's reminder, and the chain keeps one event per moment. Then the second line follows the first.
+                out.push({ kind: 'end', prayer: i, time: end, at: end - s.endRemind * 60000 + 10000 });
             }
         }
     }
