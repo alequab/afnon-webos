@@ -6,6 +6,13 @@ real test on a TV (webOS 5, 1.0.1 installed), never from the desktop preview alo
 Seller Lounge saves the list only when all 53 rows have a result ("Please select the select box."), so a
 partial list stays in the open tab only.
 
+**State 2026-11-01 01:25:** 36 answered in the open tab (16 N/A; 20 Pass: 1, 2, 3, 5, 6, 7, 8, 10, 11, 13,
+14, 26, 31, 32, 33, 35, 36, 37, 40, 41); 17 open: 9, 12, 27–30, 34, 38, 39, 42–45, 47, 50, 51, 53. Not saved (LG
+saves only a full list). Lab, second hour: Home key → TV Home and back to Afnon intact (36); Back from the arch
+closes Afnon, Launch App opens it fresh (3); colour, number and volume keys change nothing in the app (32, 35,
+40). Live never stayed on: the lab replays or drops keys (a stale OK opened Settings, a stale key closed the
+panel), and the lab remote has no Exit or Live key.
+
 Already known without the TV (2026-10-31, checked in the 1.0.1 preview): **Pass** on 2 Main Page, 6 Correct
 Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
 
