@@ -1,8 +1,14 @@
 # Changelog
 
-All notable changes to Afnon for LG webOS. Versions match `version` in `app/appinfo.json`.
+All notable changes to Afnon LG (Afnon for LG webOS). Versions match `version` in `app/appinfo.json`.
 
 ## [Unreleased]
+
+### Changed
+- The app is now called **Afnon LG** (أفنون LG), with egyjs's agreement
+  ([egyjs/afnon-android-tv-launcher#31](https://github.com/egyjs/afnon-android-tv-launcher/issues/31)): the
+  title on the TV, the What's new headings and the README, which also says that alequab maintains it and where
+  to report LG bugs. The vendor is alequab.
 
 ## [1.0.0] - 2026-10-30
 

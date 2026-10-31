@@ -1,10 +1,10 @@
 {
   "id": "tv.afnon.lg",
   "version": "1.0.0",
-  "vendor": "Afnon",
+  "vendor": "alequab",
   "type": "web",
   "main": "index.html",
-  "title": "Afnon",
+  "title": "Afnon LG",
   "appDescription": "Prayer times, adhan, Quran radio and live Makkah",
   "icon": "icon.png",
   "largeIcon": "icon-large.png",

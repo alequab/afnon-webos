@@ -4,15 +4,18 @@
 
 والصلاة والسلام على رسول الله، أما بعد:
 
-# أفنون لتلفاز LG
+# أفنون LG
 
-أفنون على تلفاز LG: يوم الصلاة على شاشتك. الصلاة القادمة وعدّ تنازلي في محراب، ومواقيت اليوم دون إنترنت،
+أفنون LG، أفنون على تلفاز LG: يوم الصلاة على شاشتك. الصلاة القادمة وعدّ تنازلي في محراب، ومواقيت اليوم دون إنترنت،
 والقبلة، والأذان في وقته، والتنبيه قبل كل صلاة، ووضعا الجمعة ورمضان، وإذاعات القرآن الكريم، والبث المباشر من مكة
 المكرمة والمدينة المنورة. العربية أولًا، ومعها الإنجليزية.
 
 > **أفنون من إنشاء [egyjs](https://github.com/egyjs)**:
 > [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). التصميم والمزايا والمدن
 > والنصوص كلها من أفنون الذي أنشأه egyjs، وهذا المستودع ينقلها إلى تلفازات LG بالرخصة نفسها (MIT). شكرًا لـ egyjs.
+>
+> **أفنون LG يصونه [alequab](https://github.com/alequab)**، وبإذن egyjs يحمل هذا الاسم. أبلغ عن أخطاء نسخة LG في
+> [مستودع أفنون LG](https://github.com/alequab/afnon-webos/issues)، لا في مستودع egyjs.
 
 يعمل على تلفازات LG بنظام webOS 5 فأحدث.
 
@@ -43,16 +46,16 @@
 
 ## التثبيت
 
-يُثبَّت من متجر LG Content Store على التلفاز مباشرة. ابحث عن «Afnon» في المتجر.
+يُثبَّت من متجر LG Content Store على التلفاز مباشرة. ابحث عن «Afnon LG» في المتجر.
 
 **التحديث:** يحدّث متجر LG التطبيق بنفسه إذا كان التحديث التلقائي مفعّلًا في التلفاز. وحين يصل إصدار أحدث إلى المتجر
-تظهر نقطة ذهبية على زر الإعدادات، وفي «ما الجديد» سطر يفتح متجر LG بزر OK لتحديث أفنون منه.
+تظهر نقطة ذهبية على زر الإعدادات، وفي «ما الجديد» سطر يفتح متجر LG بزر OK لتحديث أفنون LG منه.
 
 </div>
 
 ---
 
-# Afnon for LG webOS (أفنون)
+# Afnon LG (أفنون LG)
 
 The prayer day on an LG TV: the next prayer and a live countdown in a mihrab arch, offline prayer times, the
 Qibla, the adhan at prayer time, reminders before each prayer, Friday and Ramadan modes, and Quran radio.
@@ -62,8 +65,12 @@ Arabic (right to left) first, with English.
 > [egyjs/afnon-android-tv-launcher](https://github.com/egyjs/afnon-android-tv-launcher). The design, the
 > features, the cities and the texts all come from egyjs's Afnon. This repository brings them to LG TVs,
 > under the same MIT licence. Thank you, egyjs.
+>
+> **Afnon LG is maintained by [alequab](https://github.com/alequab)** and carries this name with egyjs's
+> agreement. Please report bugs in the LG version in [this repository](https://github.com/alequab/afnon-webos/issues),
+> not in egyjs's.
 
-This is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the cities and the
+Afnon LG is the LG (webOS) version of Afnon, the Android TV launcher. It keeps the same look, the cities and the
 same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
 Works on LG TVs with webOS 5 or newer.
@@ -122,7 +129,7 @@ webOS doesn't let an app replace the TV's Home screen or read the list of instal
 
 ## Install
 
-Search for **Afnon** in the LG Content Store on your TV and install it. On the TV, choose your city in
+Search for **Afnon LG** in the LG Content Store on your TV and install it. On the TV, choose your city in
 Settings (gear icon) → Location.
 
 Each [GitHub release](https://github.com/alequab/afnon-webos/releases) also has the `.ipk`, with the adhan and

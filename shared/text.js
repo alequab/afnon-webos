@@ -229,12 +229,12 @@
     return this.ar ? 'إصدار أحدث في متجر LG: ' + version : 'Newer in the LG Content Store: ' + version;
   };
   T.updateHow = function () {
-    return this.ar ? 'اضغط OK لفتح متجر LG، ثم حدِّث أفنون منه' : 'Press OK to open the LG Content Store, then update Afnon there';
+    return this.ar ? 'اضغط OK لفتح متجر LG، ثم حدِّث أفنون LG منه' : 'Press OK to open the LG Content Store, then update Afnon LG there';
   };
   T.lgStore = function () { return this.ar ? 'متجر LG' : 'LG Content Store'; };
-  /** A release's heading on the What's new page: «أفنون 0.2.0» / "Afnon 0.2.0", in the chosen digits. */
+  /** A release's heading on the What's new page: «أفنون LG 0.2.0» / "Afnon LG 0.2.0", in the chosen digits. */
   T.newsVersion = function (version) {
-    return (this.ar ? 'أفنون ' : 'Afnon ') + (this.eastern ? this.d(version).replace(/\./g, '٫') : version);
+    return (this.ar ? 'أفنون LG ' : 'Afnon LG ') +(this.eastern ? this.d(version).replace(/\./g, '٫') : version);
   };
   /**
    * Settings → What's new, newest release first: each group is a version (its heading, newsVersion), then a few
