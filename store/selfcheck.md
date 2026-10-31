@@ -11,7 +11,10 @@ partial list stays in the open tab only.
 saves only a full list). Lab, second hour: Home key → TV Home and back to Afnon intact (36); Back from the arch
 closes Afnon, Launch App opens it fresh (3); colour, number and volume keys change nothing in the app (32, 35,
 40). Live never stayed on: the lab replays or drops keys (a stale OK opened Settings, a stale key closed the
-panel), and the lab remote has no Exit or Live key.
+panel), and the lab remote has no Exit or Live key. Cause found at 01:30: the lab delivers
+OK as a pointer click where the TV's (hidden) pointer sits, which is over the arch button, so OK on Live
+focused the arch and opened Today's prayers twice, even with OK 1.5 s after the arrow. The live video can't be
+tested in this lab; it isn't an app fault (a real Magic Remote does the same: OK presses what the pointer is on).
 
 Already known without the TV (2026-10-31, checked in the 1.0.1 preview): **Pass** on 2 Main Page, 6 Correct
 Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
