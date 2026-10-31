@@ -1,4 +1,5 @@
-# Draws Afnon's launcher icons (the mihrab arch in gold on lapis) into app/icon.png (80) and app/icon-large.png (130).
+# Draws Afnon's launcher icons (the mihrab arch in gold on lapis) into app/icon.png (80) and app/icon-large.png (130),
+# and the LG Content Store's icon (400 or more, Seller Lounge refuses smaller) into store/icon-400.png.
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
 function Draw([int]$size, [string]$out) {
@@ -26,3 +27,5 @@ function Draw([int]$size, [string]$out) {
 }
 Draw 80 "$root\app\icon.png"
 Draw 130 "$root\app\icon-large.png"
+New-Item -ItemType Directory -Force "$root\store" | Out-Null
+Draw 400 "$root\store\icon-400.png"
