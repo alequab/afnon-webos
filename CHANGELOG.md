@@ -5,12 +5,14 @@ in `app/appinfo.json`.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-31
+
 ### Changed
 - The app is now called **Afnon LG Lite** (أفنون LG لايت). egyjs agreed to the Afnon LG name
   ([egyjs/afnon-android-tv-launcher#31](https://github.com/egyjs/afnon-android-tv-launcher/issues/31)); the
   rooted launcher is Afnon LG, and this store app is its Lite. The title on the TV, the What's new headings
   and the README, which also says that alequab maintains it, where to report LG bugs, and points to the
-  launcher. The vendor is alequab.
+  launcher. The vendor is alequab. What's new says so.
 
 ## [1.0.0] - 2026-10-30
 
@@ -143,6 +145,7 @@ First version, following the Android app's features and look.
   - A desktop preview.
   - A comparison of every time against the Android app's adhan-java.
 
-[Unreleased]: https://github.com/alequab/afnon-webos/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/alequab/afnon-webos/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/alequab/afnon-webos/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/alequab/afnon-webos/releases/tag/v1.0.0
 [0.1.0]: https://github.com/alequab/afnon-webos/releases/tag/v0.1.0

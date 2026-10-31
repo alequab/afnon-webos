@@ -1,4 +1,4 @@
-# Packages Afnon for a release (the GitHub release and the LG Content Store), the version app/appinfo.json's, into
+# Packages Afnon LG Lite for a release (the GitHub release and the LG Content Store), the version app/appinfo.json's, into
 # out\release\, with the adhan and voice recordings this PC has in app\sounds (tools/fetch-adhans.ps1 and
 # tools/make-voice.ps1 put them there): Afnon is of no use without them. They stay out of the source (no licence);
 # THIRD_PARTY.md credits them. The service's state.json never goes in.

@@ -243,6 +243,8 @@
    */
   T.news = function () {
     if (this.ar) return [
+      ['1.0.1',
+        'الاسم الآن أفنون LG لايت، بموافقة egyjs صاحب أفنون'],
       ['1.0.0',
         '192 مدينة تُختار بالمنطقة ثم الدولة ثم المدينة، ولكل مدينة مذهب العصر المعتاد فيها',
         'طريقة وزارة الأوقاف العُمانية، والعشاء في رمضان بعد المغرب بساعتين لمدن أم القرى',
@@ -264,6 +266,8 @@
         'الوضع الليلي']
     ];
     return [
+      ['1.0.1',
+        "Now called Afnon LG Lite, with the agreement of egyjs, Afnon's creator"],
       ['1.0.0',
         '192 cities, picked by region, then country, then city, each on its usual Asr school',
         "Oman's Ministry of Awqaf method, and Isha two hours after Maghrib in Ramadan for Umm al-Qura cities",
