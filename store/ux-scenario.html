@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Afnon LG Lite: UX scenario</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm; }
+  body { font: 10.5pt/1.45 "Segoe UI", Arial, sans-serif; color: #1a1a1a; }
+  h1 { font-size: 20pt; margin: 0 0 2mm; color: #0c1b33; }
+  h2 { font-size: 13pt; margin: 7mm 0 2mm; color: #0c1b33; border-bottom: 1px solid #d8b46a; padding-bottom: 1mm; }
+  h3 { font-size: 11pt; margin: 4mm 0 1mm; }
+  p, li { margin: 1mm 0; }
+  .sub { color: #555; margin-bottom: 4mm; }
+  table { border-collapse: collapse; width: 100%; margin: 2mm 0; }
+  th, td { border: 1px solid #ccc; padding: 1.5mm 2mm; text-align: left; vertical-align: top; }
+  th { background: #f3efe4; }
+  figure { margin: 3mm 0; page-break-inside: avoid; }
+  figure img { width: 100%; border: 1px solid #999; }
+  figcaption { font-size: 9pt; color: #444; margin-top: 1mm; }
+  .page { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>Afnon LG Lite: UX scenario</h1>
+<p class="sub">App ID tv.afnon.lg · version 1.0.1 · web app for webOS 5 (2020) and later · 1920×1080 ·
+maintained by alequab (github.com/alequab/afnon-webos)</p>
+
+<h2>1. What the app is</h2>
+<p>A prayer-times app for Muslims. It shows the next prayer with a countdown, the day's six prayer times,
+the Hijri and Gregorian dates and the Qibla, plays the adhan (call to prayer) at prayer time, and gives
+reminders before each prayer. It also has Quran radio and live video from Makkah and Madinah.
+Arabic (right to left) is the main language; English is the other.</p>
+
+<table>
+  <tr><th>Log-in</th><td>None. No accounts, no test account needed.</td></tr>
+  <tr><th>In-app purchase</th><td>None. The app is free.</td></tr>
+  <tr><th>In-app ads</th><td>None.</td></tr>
+  <tr><th>Personal data</th><td>None collected or shared. Settings stay on the TV. Privacy policy:
+    github.com/alequab/afnon-webos/blob/main/PRIVACY.md</td></tr>
+  <tr><th>Internet</th><td>Not needed for the prayer times (calculated on the TV). Used only by the radio,
+    the live video, and a daily check of the store's version number.</td></tr>
+  <tr><th>Background service</th><td>tv.afnon.lg.service schedules the next adhan and reminder with the
+    Activity Manager, so they come even when the app is closed.</td></tr>
+</table>
+
+<h2>2. Remote keys</h2>
+<table>
+  <tr><th>Key</th><th>What it does</th></tr>
+  <tr><td>Arrows</td><td>Move the focus (gold ring) between buttons, prayer cells and rows.</td></tr>
+  <tr><td>OK</td><td>Opens or presses the focused item. In Settings: OK starts editing a row, OK again saves
+    it ("Saved" mark).</td></tr>
+  <tr><td>Back</td><td>Goes back one screen; in Settings while editing, cancels the change. On Home it closes
+    the app.</td></tr>
+  <tr><td>Magic Remote pointer</td><td>Pointing and clicking works on every button and row.</td></tr>
+</table>
+
+<h2>3. Screens and flows</h2>
+
+<h3>3.1 Home (first screen)</h3>
+<figure><img src="screenshot-1-home-ar.png">
+<figcaption>Home in Arabic. Right: the next prayer and its countdown inside the mihrab arch, with the
+"Today &amp; Qibla" button. Top: clock, Hijri and Gregorian date, city; buttons Live, Night mode, Settings.
+Middle: the six prayer times (next one outlined in gold, current one filled). Below: the radio panel
+(Play, Station, Screen off).</figcaption></figure>
+
+<p><b>Flow:</b> the app opens on Home. OK on "Today &amp; Qibla" opens 3.2. OK on Live plays Makkah at once in
+a panel on Home; the buttons under the video switch to Madinah, open full screen and choose the quality. Radio: Play starts the
+selected station, Station picks another, Screen off shows a black screen while the radio plays (any key
+returns).</p>
+
+<div class="page"></div>
+<h3>3.2 Today &amp; Qibla</h3>
+<figure><img src="screenshot-2-day-ar.png">
+<figcaption>The day's times with a bell per prayer (OK turns that prayer's adhan on or off), and the Qibla
+compass from the chosen city. "Set the room's direction" lets the user say which way the TV faces once, so
+the Qibla is shown relative to where they sit. Back returns to Home.</figcaption></figure>
+
+<h3>3.3 Ramadan</h3>
+<figure><img src="screenshot-3-ramadan-ar.png">
+<figcaption>In Ramadan, Home counts down to iftar (Maghrib) and shows the end of suhoor; Fajr is labelled
+"Imsak". On Fridays, Dhuhr becomes Jumu'ah.</figcaption></figure>
+
+<div class="page"></div>
+<h3>3.4 Settings</h3>
+<figure><img src="screenshot-4-settings-ar.png">
+<figcaption>Settings, six sections on the right: Prayer times (city, calculation method, Asr school, Hijri
+adjustment, room direction), Adjust the times (each time by minutes), Reminders &amp; adhan, Radio, Display
+&amp; language, What's new. Up/Down choose a row, OK edits, OK saves.</figcaption></figure>
+
+<p><b>First use:</b> choose the city in Settings → Prayer times → Location (region, then country, then city;
+192 cities). The calculation method and Asr school follow the city and can be changed.</p>
+
+<h3>3.5 English</h3>
+<figure><img src="screenshot-5-home-en.png">
+<figcaption>Home in English (Settings → Display &amp; language). The layout mirrors to left-to-right.
+</figcaption></figure>
+
+<div class="page"></div>
+<h2>4. Adhan and reminders (also while the app is closed)</h2>
+<ul>
+  <li><b>Adhan:</b> at each prayer time whose bell is on, the app opens by itself over whatever is on screen
+    (another app or an HDMI input) and plays the adhan with the prayer's name on screen. OK on its button or
+    Back stops it and returns to what was on before; otherwise it closes by itself after the adhan.</li>
+  <li><b>Reminder:</b> 5, 10, 15, 20 or 30 minutes before a prayer (Settings → Reminders &amp; adhan), a
+    TV notification appears and, if chosen, a short spoken line ("It is now time for the Asr prayer").</li>
+  <li><b>Time ending:</b> optionally, a spoken warning shortly before the current prayer's time ends.</li>
+</ul>
+
+<h3>How to test the adhan quickly</h3>
+<ol>
+  <li>Settings → Prayer times → Location: pick a city whose next prayer is a few minutes away, or</li>
+  <li>Settings → Adjust the times: move the next prayer earlier or later by up to 30 minutes so that it falls
+    one or two minutes from now. The row shows the adjusted time at once.</li>
+  <li>Press Home or open another app. At that minute the adhan screen opens over it and the adhan plays.</li>
+</ol>
+
+<h2>5. Updates</h2>
+<p>Once a day the app reads a small file with the version number published in the LG Content Store. When a
+newer version exists, a gold dot appears on Settings and What's new, and OK on the line there opens the LG
+Content Store. The app never downloads or installs anything itself.</p>
+
+<h2>6. Notes</h2>
+<ul>
+  <li>After a power cut, the times are hidden until the TV's clock is set (a message says so), so a wrong
+    clock never gives wrong prayer times.</li>
+  <li>The live video comes from Aloula (Saudi Broadcasting Authority) and the radio from public Quran radio
+    streams; both need the internet and may vary with the network.</li>
+</ul>
+
+</body>
+</html>
