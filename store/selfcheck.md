@@ -9,6 +9,14 @@ partial list stays in the open tab only.
 Already known without the TV (2026-10-31, checked in the 1.0.1 preview): **Pass** on 2 Main Page, 6 Correct
 Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
 
+Seen on a real TV (webOS Cloud Test Lab, webOS 23 OLED65B UK, 1.0.1, 2026-11-01 00:45 GMT+2): launches to
+Home at once (1, 2); 1920×1080 fills the screen (5); English text whole and correct (6); gold focus ring on
+the arch button, header buttons and prayer rows (7); no flicker (8); OK opens Today's prayers with the Qibla
+(10); Back from Today's prayers returns to Home with the focus where it was (11, 37). The lab's remote lagged
+5–30 s and dropped keys, so the live video, sound, Exit, Home key, pointer and relaunch were not reached. On
+that TV (clock in UK time) the Cairo times show in the TV's clock (Fajr 02:41 = 04:41 Cairo) and the countdown
+matches it.
+
 ## N/A: Afnon LG Lite doesn't have these (16)
 
 | Row | Item | Why |
