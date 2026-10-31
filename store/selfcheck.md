@@ -12,8 +12,16 @@ Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
 Seen on a real TV (webOS Cloud Test Lab, webOS 23 OLED65B UK, 1.0.1, 2026-11-01 00:45 GMT+2): launches to
 Home at once (1, 2); 1920×1080 fills the screen (5); English text whole and correct (6); gold focus ring on
 the arch button, header buttons and prayer rows (7); no flicker (8); OK opens Today's prayers with the Qibla
-(10); Back from Today's prayers returns to Home with the focus where it was (11, 37). The lab's remote lagged
-5–30 s and dropped keys, so the live video, sound, Exit, Home key, pointer and relaunch were not reached. On
+(10); Back from Today's prayers returns to Home with the focus where it was (11, 37). Also seen: Settings opens and
+renders (English, six sections, Prayer times rows) and Back from Settings returns Home; the radio's Play shows
+"Connecting…", then "Signal lost · retrying" for Nablus, whose server (quran-radio.org:8899) was down from the
+PC too at that hour; the app stayed responsive. The lab's remote lagged 5–30 s and dropped keys (every
+click on its remote also shows the TV's pointer, and webOS spends the next arrow hiding it), so the live
+video, sound, Exit, Home key, pointer and relaunch were not reached.
+
+**Before Submit:** Nablus is the default station; if its stream is down when LG tests, Play shows "Signal
+lost". Consider a default that is up (the Saudi Holy Quran Radio, kwikmotion) or falling back to the next
+station. On
 that TV (clock in UK time) the Cairo times show in the TV's clock (Fajr 02:41 = 04:41 Cairo) and the countdown
 matches it.
 
