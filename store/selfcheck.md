@@ -3,7 +3,13 @@
 Every row needs Pass or N/A before Submit. The results are the seller's statement to LG: enter them only from a
 real test on a TV (webOS 5, 1.0.1 installed), never from the desktop preview alone.
 
-## N/A: Afnon LG Lite doesn't have these (17)
+Seller Lounge saves the list only when all 53 rows have a result ("Please select the select box."), so a
+partial list stays in the open tab only.
+
+Already known without the TV (2026-10-31, checked in the 1.0.1 preview): **Pass** on 2 Main Page, 6 Correct
+Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
+
+## N/A: Afnon LG Lite doesn't have these (16)
 
 | Row | Item | Why |
 |---|---|---|
@@ -19,7 +25,7 @@ real test on a TV (webOS 5, 1.0.1 installed), never from the desktop preview alo
 | 49 | Play Contents / Play Resume | live only |
 | 52 | Contents DRM | no paid or protected video |
 
-## Test on the TV (36)
+## Test on the TV (37; 2, 6, 7, 10 and 41 seen in the preview, the rest need the TV)
 
 | Rows | What to check |
 |---|---|
