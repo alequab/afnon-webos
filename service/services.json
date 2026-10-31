@@ -1,1 +1,1 @@
-{ "id": "tv.afnon.lg.service", "description": "Afnon LG service", "services": [ { "name": "tv.afnon.lg.service", "description": "Afnon prayer reminders" } ] }
+{ "id": "tv.afnon.lg.service", "description": "Afnon LG Lite service", "services": [ { "name": "tv.afnon.lg.service", "description": "Afnon prayer reminders" } ] }
