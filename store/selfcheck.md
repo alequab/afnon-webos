@@ -16,6 +16,11 @@ OK as a pointer click where the TV's (hidden) pointer sits, which is over the ar
 focused the arch and opened Today's prayers twice, even with OK 1.5 s after the arrow. The live video can't be
 tested in this lab; it isn't an app fault (a real Magic Remote does the same: OK presses what the pointer is on).
 
+**Saved in Seller Lounge 2026-11-01 ~13:35: all 53 rows (36 Pass, 17 N/A), "Successfully save."** Row 42 (sound)
+heard by the user on the live video; row 39 (LIVE key) pressed by the user on the real remote, switched fine;
+row 53 (factory reset) Pass because the app keeps only its own settings and starts fresh on Cairo without
+them. The test install was removed from the TV afterwards (only tv.afnon.launcher left).
+
 **On the user's own TV (65UN7240, webOS 5, 1.0.1 installed over root, 2026-11-01 13:17–13:25):**
 live Makkah plays at 480p and 1080p, Madinah at 1080p, full screen fills the screen, Up opens the quality
 list (1080p/480p/360p), Back leaves full screen, Back again stops the video (9, 43, 44, 45, 47, 50, 51);
