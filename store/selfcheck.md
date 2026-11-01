@@ -16,6 +16,18 @@ OK as a pointer click where the TV's (hidden) pointer sits, which is over the ar
 focused the arch and opened Today's prayers twice, even with OK 1.5 s after the arrow. The live video can't be
 tested in this lab; it isn't an app fault (a real Magic Remote does the same: OK presses what the pointer is on).
 
+**On the user's own TV (65UN7240, webOS 5, 1.0.1 installed over root, 2026-11-01 13:17–13:25):**
+live Makkah plays at 480p and 1080p, Madinah at 1080p, full screen fills the screen, Up opens the quality
+list (1080p/480p/360p), Back leaves full screen, Back again stops the video (9, 43, 44, 45, 47, 50, 51);
+Exit key closes Afnon to the last input (38); volume keys change the TV's volume (24→23→24) inside Afnon,
+Home/Back/Exit too (34); Magic Remote pointer hover focuses Live and a click starts it (27, 28, 29); wheel
+both ways on Home changes nothing (30). Row 12 (an EXIT UI button) is N/A: Afnon has none, Back on the arch
+closes it. Left: 39 (Live TV key: not sent by the remote connection, needs the real remote), 42 (sound: the
+TV's media pipeline is "play" for tv.afnon.lg, but someone has to hear it), 53 (factory reset).
+
+So **50 of 53** are known: 17 N/A (4, 12, 15–25, 46, 48, 49, 52), 33 Pass (1–3, 5–11, 13, 14, 26–38, 40, 41,
+43–45, 47, 50, 51).
+
 Already known without the TV (2026-10-31, checked in the 1.0.1 preview): **Pass** on 2 Main Page, 6 Correct
 Text, 7 Mouse Over/Focus, 10 UI Button, 41 Change Language.
 
