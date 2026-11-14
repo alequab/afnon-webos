@@ -18,7 +18,7 @@
 > LG في [مستودعه](https://github.com/alequab/afnon-webos/issues)، لا في مستودع egyjs.
 
 يعمل على تلفازات LG بنظام webOS 5 فأحدث، تطبيقًا تفتحه من شريط الرئيسية. أمّا
-[أفنون LG](https://github.com/alequab/islamic-launcher-for-lg-tv) فيجعل أفنون الشاشة الرئيسية نفسها، ويحتاج تلفازًا
+[أفنون LG](https://github.com/alequab/afnon-lg) فيجعل أفنون الشاشة الرئيسية نفسها، ويحتاج تلفازًا
 مفتوح الصلاحيات (root).
 
 ## المزايا
@@ -73,7 +73,7 @@ Arabic (right to left) first, with English.
 > not in egyjs's.
 
 Afnon LG Lite is the LG Content Store version of Afnon, the Android TV launcher: an app you open from the Home
-bar. [Afnon LG](https://github.com/alequab/islamic-launcher-for-lg-tv) is the one that becomes the Home screen
+bar. [Afnon LG](https://github.com/alequab/afnon-lg) is the one that becomes the Home screen
 itself, on a rooted TV. It keeps the same look, the cities and the
 same prayer times, rebuilt as a light web app for webOS, so it runs smoothly on low-memory TVs.
 
