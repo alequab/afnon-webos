@@ -1,10 +1,30 @@
-<div dir="rtl">
+<div dir="rtl" align="center">
 
-بسم الله الرحمن الرحيم
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/opening-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="docs/opening-light.png">
+  <img src="docs/opening-dark.png" alt="بسم الله الرحمن الرحيم، والصلاة والسلام على نبينا محمد" width="560">
+</picture>
 
-والصلاة والسلام على رسول الله، أما بعد:
+<br>
 
-# أفنون LG لايت
+<h2>أفنون LG لايت</h2>
+
+**يوم الصلاة على تلفاز LG، من متجر LG**
+
+*Afnon LG Lite: the prayer day on an LG TV, from the LG Content Store*
+
+<br>
+
+### [العربية](#العربية) &nbsp;·&nbsp; [English](#english)
+
+</div>
+
+---
+
+<div dir="rtl" lang="ar">
+
+## العربية
 
 أفنون LG لايت، أفنون على تلفاز LG من متجر LG: يوم الصلاة على شاشتك. الصلاة القادمة وعدّ تنازلي في محراب، ومواقيت اليوم دون إنترنت،
 والقبلة، والأذان في وقته، والتنبيه قبل كل صلاة، ووضعا الجمعة ورمضان، وإذاعات القرآن الكريم، والبث المباشر من مكة
@@ -57,7 +77,7 @@
 
 ---
 
-# Afnon LG Lite (أفنون LG لايت)
+## English
 
 The prayer day on an LG TV: the next prayer and a live countdown in a mihrab arch, offline prayer times, the
 Qibla, the adhan at prayer time, reminders before each prayer, Friday and Ramadan modes, and Quran radio.
